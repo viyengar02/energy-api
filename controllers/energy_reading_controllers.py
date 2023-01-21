@@ -1,0 +1,28 @@
+from fastapi import HTTPException
+from services import mongo_interface
+from datetime import datetime, timezone
+
+def insert_record_controller(board_id: int, data: dict):
+    try:
+        payload = data.dict()
+        current_date = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S')
+        payload["_id"] = f'{current_date}'
+        mongo_interface.insert_energy_record(board_id, payload)
+
+        return payload
+    except Exception as error:
+        print(f'Error occurred at insert_energy_record_controller: {error}')
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+def get_records_controller(board_id: int):
+    try:
+        records_list = mongo_interface.get_collection_items(board_id)
+        response = {
+            "board_id": board_id,
+            "board_type": "ADE9000",
+            "records": records_list
+        }
+        return response
+    except Exception as error:
+        print(f'Error occurred at get_records_controller: {error}')
+        raise HTTPException(status_code=500, detail="Internal Server Error")
