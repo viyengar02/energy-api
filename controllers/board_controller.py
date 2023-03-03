@@ -10,6 +10,15 @@ def register_board(payload):
         print(f'Error occurred at register_board: {error}')
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
+def autenticate_board(payload):
+    try:
+        data = payload.dict()
+        board_data = mongo_interface.get_board(data["id"])
+        return board_data
+    except Exception as error:
+        print(f'Error occurred at register_board: {error}')
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
 # def get_board_info(board_id: int, board_type: str):
 #     try:
 #         response = mongo_interface.create_board(board_id, board_type)

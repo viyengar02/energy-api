@@ -34,3 +34,8 @@ def create_board(board_id: int, board_type: str):
     }
     collection_name.insert_one(payload)
     return payload
+
+def get_board(board_id: int):
+    collection_name = db_client["boards"]
+    board_info = collection_name.find_one({"_id":board_id})
+    return board_info
