@@ -3,27 +3,29 @@ from services import mongo_interface
 from controllers import security
 from fastapi.security import HTTPAuthorizationCredentials
 
-def register_board(payload):
+def register_user(payload):
     try:
         data = payload.dict()
-        response = mongo_interface.create_board(data["id"], data["board_type"])
+        response = mongo_interface.create_user(data)
         return response
+    except HTTPException as http_error:
+        # If an HTTPException was raised, re-raise it
+        raise http_error
     except Exception as error:
         print(f'Error occurred at register_board: {error}')
         raise HTTPException(status_code=500, detail="Internal Server Error")
-
-
-def autenticate_board(payload):
+    
+def login_user(user_credentials):
     try:
-        data = payload.dict()
+        data = user_credentials.dict()
 
         #Get Board Info from MongoDB
-        board_info = get_board_info(data['id'])
+        user_info = check_user_auth(data)
 
         # Check if the credentials are valid
-        if board_info is not None and data['id'] == board_info['_id'] and data['board_type'] == board_info['board-type']:
+        if user_info is not None:
             # If the credentials are valid, create a JWT token
-            token = security.create_board_access_token(data['id'])
+            token = security.create_user_access_token(user_info['_id'])
             return {"token": token}
         # If the credentials are invalid, raise an HTTPException with a 401 status code
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -35,36 +37,19 @@ def autenticate_board(payload):
         print(f'Error occurred at autenticate_board: {error}')
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-#Checks if the board id is authenticated and returns the board information
-def get_current_active_board(token: HTTPAuthorizationCredentials):
+def check_user_auth(user_credentials):
     try:
-        board_id = security.verify_board_access_token(token)
-        board_info = get_board_info(board_id)
-
-        if board_info is None:
-            raise HTTPException(status_code=404, detail="Board Not Found")
-        return board_info
-    
-    except HTTPException as http_error:
-        # If an HTTPException was raised, re-raise it
-        raise http_error
-    except Exception as error:
-        print(f'Error occurred at get_current_active_board: {error}')
-        raise HTTPException(status_code=500, detail="Internal Server Error")
-
-def get_board_info(board_id: int):
-    try:
-        response = mongo_interface.get_board(board_id)
+        response = mongo_interface.check_user(user_credentials)
         return response
     except Exception as error:
         print(f'Error occurred at register_board: {error}')
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-#Updates the pin configuration of a board in MongoDB
-def update_board_config(board_id: int, config):
+def get_user_info(user_id: str):
     try:
-        response = mongo_interface.create_board(board_id, config)
+        response = mongo_interface.get_user(user_id)
         return response
     except Exception as error:
         print(f'Error occurred at register_board: {error}')
         raise HTTPException(status_code=500, detail="Internal Server Error")
+    return 1

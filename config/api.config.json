@@ -1,0 +1,6 @@
+{
+    "port": 8000,
+    "secret": "alexiscool",
+    "host": "0.0.0.0",
+    "algorithm": "HS256"
+}

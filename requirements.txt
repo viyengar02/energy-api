@@ -2,6 +2,8 @@
 #Fast API requirements
 fastapi==0.92.0
 uvicorn==0.20.0
+PyJWT==2.6.0
+python-jose==3.3.0
 
 #MongoDB requirements
 pymongo==4.3.3
