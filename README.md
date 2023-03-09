@@ -14,7 +14,7 @@ This document provides a quick overview of the system, how to set it up locally 
     - Used by Machine Learning algorithms to read recorded data
     - Used by the User Dashboard to pull energy data and Machine Learning Results
 
-* Current Version 0.1
+* Current Version 0.3
 
 ## Installation
 
@@ -44,6 +44,8 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 | Version | Features | Bugfixes |
 | ----------- | ----------- | ----------- |
 | 0.1     | MongoDB Integration and basic controllers | N/A |
+| 0.2     | Implemented JWT Authentication for Boards and Dashboard users| N/A |
+| 0.3     | Implemented User Configuration, and finalized authentication| N/A |
 
 ## Maintainers
 

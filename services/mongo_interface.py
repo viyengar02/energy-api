@@ -1,6 +1,7 @@
 from utils.get_mongo_client import get_database
 from fastapi import HTTPException
 from bson import ObjectId
+import json
 
 db_client = get_database("empms-db")
 
@@ -9,18 +10,18 @@ db_client = get_database("empms-db")
 * Collection Name = "ADE9000/{board_id}"
 * payload: {<do be defined>}
 '''
-def insert_energy_record(board_id: int, payload: dict, board_type = "ADE9000"):
+def insert_energy_record(board_id: str, payload: dict, board_type = "ADE9000"):
     collection_name = db_client[f'{board_type}-records']
     payload['board_id'] = board_id
     collection_name.insert_one(payload)
 
-def insert_energy_records(board_id: int, payload: dict, board_type = "ADE9000"):
+def insert_energy_records(board_id: str, payload: dict, board_type = "ADE9000"):
     collection_name = db_client[f'{board_type}-records']
     # collection_name.insert_many([payload])
     # collection_name.insert_many([payload])
 
 #=================== BOARD MONGODB SERVICES=======================
-def get_collection_items(board_id: int, board_type = "ADE9000"):
+def get_collection_items(board_id: str, board_type = "ADE9000"):
     collection_name = db_client[f'{board_type}-records']
     item_details = collection_name.find({ "board_id": board_id})
     response_list = []
@@ -28,7 +29,7 @@ def get_collection_items(board_id: int, board_type = "ADE9000"):
         response_list.append(item)
     return response_list
 
-def create_board(board_id: int, board_type: str):
+def create_board(board_id: str, board_type: str):
     collection_name = db_client["boards"]
     payload = {
         "_id": board_id,
@@ -42,11 +43,10 @@ def get_board(board_id: int):
     board_info = collection_name.find_one({"_id":board_id})
     return board_info
 
-def update_board_info(board_id: int, config):
+def delete_board_entry(board_id: int):
     collection_name = db_client['boards']
     id_query = {"_id": board_id}
-    new_config = { "$set": { "pin_config": config } }
-    response = collection_name.update_one(id_query, new_config)
+    response = collection_name.delete_one(id_query)
     print(response)
     return 1
 
@@ -76,4 +76,19 @@ def get_user(user_id: str):
     collection_name = db_client['users']
     user_info = collection_name.find_one({"_id": ObjectId(user_id)})
     user_info["_id"] = str(user_info["_id"])
+    return user_info
+
+def update_user_board(user_id: str, board_id: str):
+    collection_name = db_client['users']
+    filter = {'_id': ObjectId(user_id)}
+    update = {'$set': {"board_id": board_id}}
+    user_info = collection_name.update_one(filter, update)
+    return user_info
+
+def update_user_config(user_id: str, config):
+    collection_name = db_client['users']
+    filter = {'_id': ObjectId(user_id)}
+    update = {'$set': {"config": config}}
+    collection_name.update_one(filter, update)
+    user_info = get_user(user_id)    
     return user_info

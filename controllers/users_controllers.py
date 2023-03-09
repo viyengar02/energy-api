@@ -2,7 +2,8 @@ from fastapi import HTTPException
 from services import mongo_interface
 from controllers import security
 from fastapi.security import HTTPAuthorizationCredentials
-
+import pymongo
+#Creates a new user in the database
 def register_user(payload):
     try:
         data = payload.dict()
@@ -14,7 +15,8 @@ def register_user(payload):
     except Exception as error:
         print(f'Error occurred at register_board: {error}')
         raise HTTPException(status_code=500, detail="Internal Server Error")
-    
+
+#Authenticates user and generates a token
 def login_user(user_credentials):
     try:
         data = user_credentials.dict()
@@ -37,6 +39,27 @@ def login_user(user_credentials):
         print(f'Error occurred at autenticate_board: {error}')
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
+#Updates board_id for specified user
+def update_user_board(user_id: str, board_id: str):
+    try:
+        response = mongo_interface.update_user_board(user_id, board_id)
+        return response
+    except Exception as error:
+        print(f'Error occurred at register_board: {error}')
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+def update_user_config(user_id: str, data):
+    try:
+        config = data.dict()
+        response = mongo_interface.update_user_config(user_id, config)
+        return response
+    except pymongo.errors.WriteError as e:
+        # Handle the error
+        print("Update failed:", e)
+    except Exception as error:
+        print(f'Error occurred at register_board: {error}')
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    
 def check_user_auth(user_credentials):
     try:
         response = mongo_interface.check_user(user_credentials)

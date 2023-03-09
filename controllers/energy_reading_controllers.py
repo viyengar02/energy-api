@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from services import mongo_interface
 from datetime import datetime, timezone
 
-def insert_record_controller(board_id: int, data: dict):
+def insert_record_controller(board_id: str, data: dict):
     try:
         payload = data.dict()
         current_date = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S')
@@ -14,11 +14,13 @@ def insert_record_controller(board_id: int, data: dict):
         print(f'Error occurred at insert_energy_record_controller: {error}')
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-def get_records_controller(board_id: int):
+def get_records_controller(user_id: str):
     try:
-        records_list = mongo_interface.get_collection_items(board_id)
+        user_info = mongo_interface.get_user(user_id)
+        records_list = mongo_interface.get_collection_items(user_info['board_id'])
+
         response = {
-            "board_id": board_id,
+            "user_id": user_id,
             "board_type": "ADE9000",
             "records": records_list
         }

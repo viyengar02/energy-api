@@ -6,9 +6,10 @@ from controllers import energy_reading_controllers
 from controllers import board_controller
 from controllers import security
 from controllers import users_controllers
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from fastapi.security import HTTPBearer
 from utils.tools import get_config_file
+from typing import Optional
 
 http_token_bearer = HTTPBearer()
 api_config = get_config_file("api.config.json")
@@ -24,11 +25,11 @@ class BoardLoginInformation(BaseModel):
     board_type: str
 
 class BoardPinConfiguration(BaseModel):
-    PIN_1: str or None
-    PIN_2: str or None
-    PIN_3: str or None
-    PIN_4: str or None
-    PIN_5: str or None
+    PIN_1: Optional[str]
+    PIN_2: Optional[str]
+    PIN_3: Optional[str]
+    PIN_4: Optional[str]
+    PIN_5: Optional[str]
 
 class UserInformation(BaseModel):
     username: str
@@ -54,8 +55,8 @@ def insert_energy_record(data: BoardData, token: str = Depends(http_token_bearer
 
 @app.get("/energy-records")
 def get_energy_record(token: str = Depends(http_token_bearer)):
-    board_id = security.verify_board_access_token(token)
-    return energy_reading_controllers.get_records_controller(board_id)
+    user_id = security.verify_user_access_token(token)
+    return energy_reading_controllers.get_records_controller(user_id)
 
 #============ Board Routes =====================
 
@@ -68,24 +69,32 @@ async def get_board_info(token: str = Depends(http_token_bearer)):
     return board_controller.get_current_active_board(token)
 
 @app.post("/boards")
-def register_new_board(data: BoardLoginInformation):
-    return board_controller.register_board(data)
+def register_new_board(data: BoardLoginInformation, token: str = Depends(http_token_bearer)):
+    user_id = security.verify_user_access_token(token)
+    return board_controller.register_board(data, user_id)
 
 #============ Users Routes =====================
 
 @app.get("/users")
 async def get_user_info(token: str = Depends(http_token_bearer)):
     user_id = security.verify_user_access_token(token)
-    print(user_id)
     return users_controllers.get_user_info(user_id)
 
 @app.post("/users")
 def register_new_user(data: UserInformation):
     return users_controllers.register_user(data)
 
+@app.put("/users")
+def configure_user(data: BoardPinConfiguration, token: str = Depends(http_token_bearer)):
+    user_id = security.verify_user_access_token(token)
+    print(data)
+    return users_controllers.update_user_config(user_id, data)
+
 @app.post("/users/login")
 def login_user(data: LoginUser):
     return users_controllers.login_user(data)
+
+#============ ML Models Routes =====================
 
 #============ Other Stuff =====================
 

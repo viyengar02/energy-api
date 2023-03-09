@@ -7,7 +7,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 api_config = get_config_file("api.config.json")
 
 def create_board_access_token(board_id: str):
-    expire = datetime.utcnow() + timedelta(minutes=15)
+    expire = datetime.utcnow() + timedelta(hours=api_config['token_exp'])
     to_encode = {
         "id": board_id,
         "exp": expire
@@ -29,7 +29,7 @@ def verify_board_access_token(token: HTTPAuthorizationCredentials):
         raise HTTPException(status_code=401, detail="Invalid token")
 
 def create_user_access_token(board_id: str):
-    expire = datetime.utcnow() + timedelta(minutes=15)
+    expire = datetime.utcnow() + timedelta(hours=api_config['token_exp'])
     to_encode = {
         "user_id": board_id,
         "exp": expire
