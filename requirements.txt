@@ -7,3 +7,12 @@ python-jose==3.3.0
 
 #MongoDB requirements
 pymongo==4.3.3
+
+#Machine Learning
+requests===2.28.2
+pandas===2.0.0
+matplotlib===3.7.1
+scikit-learn===1.2.2
+xgboost===1.7.5
+numpy===1.24.2
+seaborn===0.12.2

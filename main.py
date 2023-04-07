@@ -6,6 +6,7 @@ from controllers import energy_reading_controllers
 from controllers import board_controller
 from controllers import security
 from controllers import users_controllers
+from controllers import ml_controllers
 from pydantic import BaseModel, Field
 from fastapi.security import HTTPBearer
 from utils.tools import get_config_file
@@ -95,6 +96,9 @@ def login_user(data: LoginUser):
     return users_controllers.login_user(data)
 
 #============ ML Models Routes =====================
+@app.get("/models/xgboost")
+def run_xgboost(token: str = Depends(http_token_bearer)):
+    return ml_controllers.run_xgboost_controller()
 
 #============ Other Stuff =====================
 
