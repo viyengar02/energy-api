@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, status, Depends, HTTPException
+from fastapi import FastAPI, Request, status, Depends, WebSocket
 from fastapi.exceptions import RequestValidationError
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from fastapi.security import HTTPBearer
 from utils.tools import get_config_file
 from typing import Optional
+import asyncio
 
 http_token_bearer = HTTPBearer()
 api_config = get_config_file("api.config.json")
@@ -108,3 +109,19 @@ def validation_exception_handler(request: Request, exc: RequestValidationError):
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),
     )
+
+@app.websocket("/boards/socket")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    asyncio.create_task(send_hello(websocket))
+    while True:
+        data = await websocket.receive_text()
+        if data == "ping":
+            await websocket.send_text("pong")
+        else:
+            await websocket.send_text("Invalid message. Please send 'ping'.")
+
+async def send_hello(websocket: WebSocket):
+    while True:
+        await websocket.send_text("Hello")
+        await asyncio.sleep(5)
