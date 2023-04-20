@@ -4,15 +4,16 @@ from datetime import datetime, timezone
 
 def insert_record_controller(board_id: str, data: dict):
     try:
-        payload = data.dict()
         current_date = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S')
-        payload["_id"] = f'{current_date}'
-        mongo_interface.insert_energy_record(board_id, payload)
-
-        return payload
+        data["_id"] = f'{current_date}'
+        mongo_interface.insert_energy_record(board_id, data)
+        response = {
+            "action": "energy_record_response",
+            "payload": data
+        }
+        return response
     except Exception as error:
-        print(f'Error occurred at insert_energy_record_controller: {error}')
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        raise Exception(f'Error occurred at insert_energy_record_controller: {error}')
 
 def get_records_controller(user_id: str):
     try:

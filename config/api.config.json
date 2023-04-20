@@ -3,5 +3,5 @@
     "secret": "alexiscool",
     "host": "0.0.0.0",
     "algorithm": "HS256",
-    "token_exp": 3
+    "token_exp": 24
 }

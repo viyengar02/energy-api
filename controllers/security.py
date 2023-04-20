@@ -16,17 +16,16 @@ def create_board_access_token(board_id: str):
     encoded_jwt = jwt.encode(to_encode, api_config['secret'], algorithm=api_config['algorithm'])
     return encoded_jwt
 
-def verify_board_access_token(token: HTTPAuthorizationCredentials):
+def verify_board_access_token(token: str):
     try:
-        payload = jwt.decode(token.credentials, api_config['secret'], algorithms=[api_config['algorithm']])
+        payload = jwt.decode(token, api_config['secret'], algorithms=[api_config['algorithm']])
         id = payload.get("id")
         #Check user_id
         if id is None:
             raise HTTPException(status_code=401, detail="Invalid token")
         return id
     except Exception as error:
-        print(f'Error occurred at verify_access_token: {error}')
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise Exception(f'Error occurred at verify_access_token: {error}')
 
 def create_user_access_token(board_id: str):
     expire = datetime.utcnow() + timedelta(hours=api_config['token_exp'])

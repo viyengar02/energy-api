@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, status, Depends, WebSocket
+from fastapi import FastAPI, Request, status, Depends, WebSocket, WebSocketDisconnect
 from fastapi.exceptions import RequestValidationError
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 from fastapi.security import HTTPBearer
 from utils.tools import get_config_file
 from typing import Optional
-import asyncio
+from services.board_ws_service import BoardWebsocket
 
 http_token_bearer = HTTPBearer()
 api_config = get_config_file("api.config.json")
@@ -50,10 +50,11 @@ def root():
     return "Hello EMP System!"
 
 #============ Energy Routes =====================
-@app.post("/energy-records")
-def insert_energy_record(data: BoardData, token: str = Depends(http_token_bearer)):
-    board_id = security.verify_board_access_token(token)
-    return energy_reading_controllers.insert_record_controller(board_id, data)
+#NOT USED - USE WEBSOCKET INSTEAD
+# @app.post("/energy-records")
+# def insert_energy_record(data: BoardData, token: str = Depends(http_token_bearer)):
+#     board_id = security.verify_board_access_token(token)
+#     return energy_reading_controllers.insert_record_controller(board_id, data)
 
 @app.get("/energy-records")
 def get_energy_record(token: str = Depends(http_token_bearer)):
@@ -112,16 +113,19 @@ def validation_exception_handler(request: Request, exc: RequestValidationError):
 
 @app.websocket("/boards/socket")
 async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    asyncio.create_task(send_hello(websocket))
-    while True:
-        data = await websocket.receive_text()
-        if data == "ping":
-            await websocket.send_text("pong")
-        else:
-            await websocket.send_text("Invalid message. Please send 'ping'.")
+    # Perform authentication with JWT token
+    board_id = None
+    try:
+        board_id = security.verify_board_access_token(websocket.headers.get("Authorization"))
+    except Exception as error:
+        print(error)
+    
+    if board_id is None: 
+        await websocket.close(code=401)
+        return
 
-async def send_hello(websocket: WebSocket):
-    while True:
-        await websocket.send_text("Hello")
-        await asyncio.sleep(5)
+    board_ws = BoardWebsocket(websocket, board_id)
+    
+    # Call the start method of the BoardWebSocket class
+    await board_ws.start()
+    
