@@ -1,9 +1,11 @@
-from utils.get_mongo_client import get_database
+from utils.get_mongo_client import get_database, get_database_2
 from fastapi import HTTPException
 from bson import ObjectId
 import json
 
 db_client = get_database("empms-db")
+
+db_client_2 = get_database_2("empms-db")
 
 ''' ========== insert_energy_record
 * Inserts an energy reading from an ADE9000 Chip
@@ -33,7 +35,11 @@ def create_board(board_id: str, board_type: str):
     collection_name = db_client["boards"]
     payload = {
         "_id": board_id,
-        "board-type": board_type
+        "board-type": board_type,
+        "board-config": {
+            "optimize": False,
+            "power-threshold": None
+        }
     }
     collection_name.insert_one(payload)
     return payload
@@ -49,6 +55,28 @@ def delete_board_entry(board_id: int):
     response = collection_name.delete_one(id_query)
     print(response)
     return 1
+
+def update_board_config(board_id: str, optimization_config: object):
+    collection_name = db_client['boards']
+    filter = {'_id': board_id}
+    update = {'$set': {"board-config": optimization_config}}
+    collection_name.update_one(filter, update)
+    board_info = get_board(board_id)
+    return board_info
+
+def subscribe_board_config(board_id: str):
+    collection_name = db_client_2['boards']
+    
+    print("Subscribing for: ", board_id)
+    pipeline = [
+        {'$match': {'fullDocument.board_id': board_id}}
+    ] 
+    try:
+        change_stream = collection_name.watch(pipeline=[], full_document='updateLookup')
+        return change_stream
+    except Exception as e:
+        print("An error occurred while creating the change stream:", e)
+        raise
 
 #=================== USER MONGODB SERVICES=======================
 
