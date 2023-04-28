@@ -46,7 +46,7 @@ class BoardWebsocket:
     async def board_ws_eventloop(self):
         raw_message = await self.websocket.receive_text()
         data = json.loads(raw_message)
-
+        print(data)
         if data["action"] == "ping":
             pong_response = {
                 "action": "pong"
@@ -89,7 +89,7 @@ class BoardWebsocket:
             return 1
         # The payload is valid, insert the board data into the database or do other processing
         response = energy_reading_controllers.insert_record_controller(board_info, board_data)
-        await self.send_message(response)
+        # await self.send_message(response)
         return 0
     
     #Subscribes to changes for that the specific board configuration
