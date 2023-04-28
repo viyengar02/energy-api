@@ -89,7 +89,7 @@ class BoardWebsocket:
             return 1
         # The payload is valid, insert the board data into the database or do other processing
         response = energy_reading_controllers.insert_record_controller(board_info, board_data)
-        # await self.send_message(response)
+        await self.send_message(response)
         return 0
     
     #Subscribes to changes for that the specific board configuration
