@@ -12,9 +12,9 @@ db_client_2 = get_database_2("empms-db")
 * Collection Name = "ADE9000/{board_id}"
 * payload: {<do be defined>}
 '''
-def insert_energy_record(board_id: str, payload: dict, board_type = "ADE9000"):
+def insert_energy_record(board_info: object, payload: dict, board_type = "ADE9000"):
     collection_name = db_client[f'{board_type}-records']
-    payload['board_id'] = board_id
+    payload['board_info'] = board_info
     collection_name.insert_one(payload)
 
 def insert_energy_records(board_id: str, payload: dict, board_type = "ADE9000"):
@@ -23,20 +23,21 @@ def insert_energy_records(board_id: str, payload: dict, board_type = "ADE9000"):
     # collection_name.insert_many([payload])
 
 #=================== BOARD MONGODB SERVICES=======================
-def get_collection_items(board_id: str, board_type = "ADE9000"):
+def get_board_records(board_id: str, board_type = "ADE9000"):
     collection_name = db_client[f'{board_type}-records']
-    item_details = collection_name.find({ "board_id": board_id})
+    item_details = collection_name.find({ "board_info.board_id": board_id})
     response_list = []
     for item in item_details:
         response_list.append(item)
     return response_list
 
-def create_board(board_id: str, board_type: str):
+def create_board(board_id: str, board_type: str, user_id: str):
     collection_name = db_client["boards"]
     payload = {
         "_id": board_id,
         "board-type": board_type,
-        "board-config": {
+        "user_id": user_id,
+        "board_config": {
             "optimize": False,
             "power-threshold": None
         }
@@ -59,7 +60,7 @@ def delete_board_entry(board_id: int):
 def update_board_config(board_id: str, optimization_config: object):
     collection_name = db_client['boards']
     filter = {'_id': board_id}
-    update = {'$set': {"board-config": optimization_config}}
+    update = {'$set': {"board_config": optimization_config}}
     collection_name.update_one(filter, update)
     board_info = get_board(board_id)
     return board_info

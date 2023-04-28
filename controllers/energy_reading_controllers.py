@@ -18,7 +18,7 @@ def insert_record_controller(board_id: str, data: dict):
 def get_records_controller(user_id: str):
     try:
         user_info = mongo_interface.get_user(user_id)
-        records_list = mongo_interface.get_collection_items(user_info['board_id'])
+        records_list = mongo_interface.get_board_records(user_info['board_id'])
 
         response = {
             "user_id": user_id,

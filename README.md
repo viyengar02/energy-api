@@ -73,6 +73,7 @@ This command will ensure that the API instance will keep running after closing t
 | 0.3     | Implemented User Configuration, and finalized authentication| N/A |
 | 0.4     | Implemented an example XGBOOST model run| N/A |
 | 0.5     | Implemented a Websocket for two way board communication | N/A |
+| 0.6     | Implemented a Optimization Integrations with power threshold | N/A |
 
 ## Maintainers
 

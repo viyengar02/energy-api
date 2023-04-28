@@ -24,11 +24,11 @@ class BoardLoginInformation(BaseModel):
     board_type: str
 
 class BoardPinConfiguration(BaseModel):
-    PIN_1: Optional[str]
-    PIN_2: Optional[str]
-    PIN_3: Optional[str]
-    PIN_4: Optional[str]
-    PIN_5: Optional[str]
+    PIN_1: Optional[int]
+    PIN_2: Optional[int]
+    PIN_3: Optional[int]
+    PIN_4: Optional[int]
+    PIN_5: Optional[int]
 
 class UserInformation(BaseModel):
     username: str

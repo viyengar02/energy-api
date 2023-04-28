@@ -12,7 +12,7 @@ def register_board(payload, user_id: str):
         mongo_interface.delete_board_entry(data["id"])
 
         #2. Create a new board entry
-        response = mongo_interface.create_board(data["id"], data["board_type"])
+        response = mongo_interface.create_board(data["id"], data["board_type"], user_id)
 
         #3. Update user board_id field
         users_controllers.update_user_board(user_id, data["id"])
