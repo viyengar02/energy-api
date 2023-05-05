@@ -13,6 +13,7 @@ from fastapi.security import HTTPBearer
 from utils.tools import get_config_file
 from typing import Optional
 from services.board_ws_service import BoardWebsocket
+from services.user_ws_service import UserWebsocket
 
 http_token_bearer = HTTPBearer()
 api_config = get_config_file("api.config.json")
@@ -109,4 +110,23 @@ async def websocket_endpoint(websocket: WebSocket):
     
     # Call the start method of the BoardWebSocket class
     await board_ws.start()
+
+users_ws = {}
+
+@app.websocket("/users/socket")
+async def websocket_endpoint(websocket: WebSocket):
+    # Perform authentication with JWT token
+    user_id = None
+    try:
+        user_id = security.verify_user_access_token(websocket.headers.get("Authorization"))
+    except Exception as error:
+        print(error)
+    
+    if user_id is None: 
+        await websocket.close(code=401)
+        return
+
+    user_ws = UserWebsocket(websocket, user_id)
+    # Call the start method of the BoardWebSocket class
+    await user_ws.start()
     

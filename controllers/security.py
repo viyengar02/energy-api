@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from utils.tools import get_config_file
 from datetime import datetime, timedelta
 from fastapi.security import HTTPAuthorizationCredentials
+from typing import Union
 
 api_config = get_config_file("api.config.json")
 
@@ -37,9 +38,13 @@ def create_user_access_token(board_id: str):
     encoded_jwt = jwt.encode(to_encode, api_config['secret'], algorithm=api_config['algorithm'])
     return encoded_jwt
 
-def verify_user_access_token(token: HTTPAuthorizationCredentials):
+def verify_user_access_token(token: Union[HTTPAuthorizationCredentials, str]):
     try:
-        payload = jwt.decode(token.credentials, api_config['secret'], algorithms=[api_config['algorithm']])
+        if isinstance(token, HTTPAuthorizationCredentials):
+            token = token.credentials
+
+        payload = jwt.decode(token, api_config['secret'], algorithms=[api_config['algorithm']]) 
+
         user_id = payload.get("user_id")
         #Check user_id
         if user_id is None:
@@ -49,5 +54,3 @@ def verify_user_access_token(token: HTTPAuthorizationCredentials):
         print(f'Error occurred at verify_access_token: {error}')
         raise HTTPException(status_code=401, detail="Invalid token")
     
-# def extend_access_token():
-#     return 1

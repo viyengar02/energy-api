@@ -18,6 +18,10 @@ def insert_record_controller(board_id: str, data: dict):
 def get_records_controller(user_id: str):
     try:
         user_info = mongo_interface.get_user(user_id)
+
+        if('board_id' not in user_info):
+            raise HTTPException(status_code=400, detail="Missing board id from user information.")
+            
         records_list = mongo_interface.get_board_records(user_info['board_id'])
 
         response = {
@@ -26,6 +30,8 @@ def get_records_controller(user_id: str):
             "records": records_list
         }
         return response
+    except HTTPException as http_error:
+        raise http_error
     except Exception as error:
         print(f'Error occurred at get_records_controller: {error}')
         raise HTTPException(status_code=500, detail="Internal Server Error")

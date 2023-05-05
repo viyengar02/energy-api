@@ -16,9 +16,6 @@ class BoardWebsocket:
         self.optimization = False
         self.optimization_th = None
 
-    def __del__(self):
-        self.stop_listener()
-        
     async def start(self):
 
         #Get the necessary configurations
@@ -35,9 +32,9 @@ class BoardWebsocket:
         while True:
             try:
                 await self.board_ws_eventloop()
-                # self.get_configurations()
             except WebSocketDisconnect as e:
                 print(f"WebSocket client {self.websocket.client.host} disconnected with code {e.code}")
+                await self.stop_listener()
                 break
             except Exception as error:
                 print(f'Websocket Error {error}')
@@ -123,16 +120,12 @@ class BoardWebsocket:
         try:
             if(self.user_config is None):
                 self.user_config = mongo_interface.get_user(self.user_id)['config']
-            print("OPTIMIZATION CONFIGURATION: ", self.user_config)
-
             for key in self.user_config:
                 if self.user_config[key] == ade_id and is_low:
                     await self.send_optimization_msg(key, "LOW")
-                    print("SEND MESSAGE LOW")
                     break
                 elif self.user_config[key] == ade_id and not is_low:
                     await self.send_optimization_msg(key, "HIGH")
-                    print("SEND MESSAGE HIGH")
                     break
         except Exception as error:
             print(f"Error at handle_optimization {error}")
@@ -140,8 +133,11 @@ class BoardWebsocket:
         return 0
     
     async def send_optimization_msg(self, pin, value):
-        optimization_msg = {}
-        optimization_msg[pin] = value
+        optimization_msg = {
+            "action": "pin_select",
+            "payload": {}
+        }
+        optimization_msg["payload"][pin] = value
         await self.send_message(optimization_msg)
 
     async def send_message(self, message):
@@ -153,9 +149,10 @@ class BoardWebsocket:
 
     async def stop_listener(self):
         if self.change_stream_task and not self.change_stream_task.done():
-            self.change_stream_task.cancel()
+            is_canceled = self.change_stream_task.cancel()
             try:
-                await self.change_stream_task
+                if(is_canceled):
+                    print("Config Listener Stopped Successfully")
             except asyncio.CancelledError as e:
                 print(f"Error trying to stop config listener {e}")
                 pass

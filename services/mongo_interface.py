@@ -70,7 +70,21 @@ def subscribe_board_config(board_id: str):
     
     print("Subscribing for: ", board_id)
     pipeline = [
-        {'$match': {'fullDocument.board_id': board_id}}
+        {'$match': {'fullDocument._id': board_id}}
+    ] 
+    try:
+        change_stream = collection_name.watch(pipeline=pipeline, full_document='updateLookup')
+        return change_stream
+    except Exception as e:
+        print("An error occurred while creating the change stream:", e)
+        raise
+
+def subscribe_energy_records(board_id: str):
+    collection_name = db_client_2['ADE9000-records']
+    
+    print("Subscribing for: ", board_id)
+    pipeline = [
+        {'$match': {'fullDocument.board_info.board_id': board_id}}
     ] 
     try:
         change_stream = collection_name.watch(pipeline=[], full_document='updateLookup')
@@ -78,7 +92,6 @@ def subscribe_board_config(board_id: str):
     except Exception as e:
         print("An error occurred while creating the change stream:", e)
         raise
-
 #=================== USER MONGODB SERVICES=======================
 
 def create_user(payload):
