@@ -1,5 +1,3 @@
-# ATBBF9P6k4dmPu5ercp2bZtJJuHPD422D26F
-
 import requests
 import pandas as pd
 import datetime as datetime
@@ -7,10 +5,16 @@ from datetime import timedelta
 import matplotlib.pyplot as plt
 import xgboost as xgb
 from sklearn.metrics import mean_squared_error
-
+from models.hueristics import get_flagged_times
 from utils.tools import get_config_path
 
-def load_model():
+model_targets = [ # These are the good models so we will use them as a demo
+    "electricity-interior_lighting",
+    "electricity-exterior_lighting",
+    "electricity-interior_equipment"
+]
+
+def load_model(board_path: str):
     # Init regression model
     reg = xgb.XGBRegressor(base_score=0.5, booster='gbtree',    
                         n_estimators=1000, # creates 1k tress for this tree algorithm (read more on documentation to see other tweaks)
@@ -22,7 +26,7 @@ def load_model():
 
     # Import the model
     reg = xgb.XGBRegressor()
-    reg.load_model(get_config_path("LSTM_model.json"))
+    reg.load_model(board_path)
     # print(reg.get_booster().feature_names)
     return reg
 
@@ -54,9 +58,9 @@ def create_features(df):
         ]]
     return df
 
-def get_data():
+def get_data(days: int):
     # Get future 24 hours of data to predict on
-    URL = "https://api.open-meteo.com/v1/forecast?latitude=39.95&longitude=-75.16&past_days=1&hourly=temperature_2m&temperature_unit=fahrenheit"
+    URL = f"https://api.open-meteo.com/v1/forecast?latitude=39.95&longitude=-75.16&past_days={days}&hourly=temperature_2m&temperature_unit=fahrenheit"
     data = requests.get(URL).json()
     # Get time period to predict
     now = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M") # Get current datetime as string
@@ -86,13 +90,31 @@ def run_predictions():
     # Format to dataframe to pass to model
     validation_data = create_df(targets)
     # Load in the model
-    model = load_model()
+    model = load_model(get_config_path("LSTM_model.json"))
     # Run predictions on validation data
     predictions = model.predict(validation_data)
-    # Plot the results
-    # plt.xticks(rotation=45, ha='right')
-    # plt.plot([datetime.datetime.strftime(row[0], "%Y-%m-%dT%H:%M") for row in targets], predictions)
-    # plt.show()
     return predictions, targets
 
-# print("Done.")
+def run_predictions_v2(days: int):
+    """
+    Base func to calculate predictions of appliances using ML models.
+    """
+    # Get weather forecast data from API
+    try:
+        temperature_data = get_data(days)
+        # Format to dataframe to pass to model
+        model_inputs = create_df(temperature_data)
+        results={}
+        for target in model_targets:
+            print(f"Getting {days} days forecast for model: {target}...")
+            results[target] = {}
+            # Run predictions using the current model
+            model = load_model(get_config_path(f"{target}_model.json"))
+            predictions = model.predict(model_inputs)
+            results[target]["predictions"] = predictions
+            flagged_times = get_flagged_times(results, target)
+            results[target]["flagged_times"] = flagged_times
+        return results
+    except Exception as error:
+        print(f'Error occurred at run_predictions_v2: {error}')
+        raise f'Error occurred at run_predictions_v2: {error}'

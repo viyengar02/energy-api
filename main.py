@@ -26,11 +26,6 @@ def root():
     return "Hello EMP System!"
 
 #============ Energy Routes =====================
-#NOT USED - USE WEBSOCKET INSTEAD
-# @app.post("/energy-records")
-# def insert_energy_record(data: BoardData, token: str = Depends(http_token_bearer)):
-#     board_id = security.verify_board_access_token(token)
-#     return energy_reading_controllers.insert_record_controller(board_id, data)
 
 @app.get("/energy-records")
 def get_energy_record(token: str = Depends(http_token_bearer)):
@@ -77,6 +72,10 @@ def login_user(data: templates.LoginUser):
 @app.get("/models/xgboost")
 def run_xgboost(token: str = Depends(http_token_bearer)):
     return ml_controllers.run_xgboost_controller()
+
+@app.get("/models/compound")
+def run_xgboost(token: str = Depends(http_token_bearer), days: int = 1):
+    return ml_controllers.interior_lighting_controller(days)
 
 #============ Optimization Routes ===================
 @app.post("/optimization/threshold")
