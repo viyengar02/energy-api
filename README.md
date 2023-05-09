@@ -75,7 +75,7 @@ This command will ensure that the API instance will keep running after closing t
 | 0.5     | Implemented a Websocket for two way board communication | N/A |
 | 0.6     | Implemented a Optimization Integrations with power threshold | N/A |
 | 0.7     | Implemented a Websocket for the user which listens and send energy records | Fixed Async Task Cleanup |
-
+| 0.8     | Implemented compund models | N/A |
 ## Maintainers
 
 * Aleksandar Aleksandrov - ava54@drexel.edu
