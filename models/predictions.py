@@ -84,9 +84,9 @@ def create_df(targets):
     weather_df = create_features(weather_df)
     return weather_df
 
-def run_predictions():
+def run_predictions(days: int):
     # Get weather forcast data from API
-    targets = get_data()
+    targets = get_data(days)
     # Format to dataframe to pass to model
     validation_data = create_df(targets)
     # Load in the model

@@ -1,9 +1,9 @@
 from models.predictions import run_predictions, run_predictions_v2
 from fastapi import HTTPException
 
-def run_xgboost():
+def run_xgboost(days: int):
     try:
-        payload = run_predictions()
+        payload = run_predictions(days)
         predictions = payload[0]
         response = {
             "xgboost_predictions": predictions.tolist()
@@ -13,7 +13,7 @@ def run_xgboost():
         print(f'Error occurred at load_xgboost: {error}')
         raise f'Error occurred at load_xgboost: {error}'
     
-def run_xgboost_interior_lighting(days: int):
+def run_compund_model(days: int):
     try:
         payload = run_predictions_v2(days)
         response = {

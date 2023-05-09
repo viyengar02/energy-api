@@ -70,14 +70,14 @@ def login_user(data: templates.LoginUser):
 
 #============ ML Models Routes =====================
 @app.get("/models/xgboost")
-def run_xgboost(token: str = Depends(http_token_bearer)):
+def run_xgboost(token: str = Depends(http_token_bearer), days: int = 1):
     user_id = security.verify_user_access_token(token)
-    return ml_controllers.run_xgboost_controller()
+    return ml_controllers.run_xgboost_controller_v1(days)
 
 @app.get("/models/compound")
 def run_xgboost(token: str = Depends(http_token_bearer), days: int = 1):
     user_id = security.verify_user_access_token(token)
-    return ml_controllers.interior_lighting_controller(days)
+    return ml_controllers.run_xgboost_controller_compound(days)
 
 #============ Optimization Routes ===================
 @app.post("/optimization/threshold")
