@@ -23,14 +23,14 @@ def generate_order(start_index=datetime.now().hour):
     
     return generated_list
 
-def merge_preds(preds, data):
+def merge_preds(preds, data, days):
     group_by_month = data.groupby(['month', 'hour']).mean()
     month = datetime.now().month
     df = group_by_month.loc[(month,)]
     df = df.iloc[generate_order()]
     df = df.reset_index(drop=True)
+    df = pd.concat([df] * days, ignore_index=True)
     df["prediction"] = preds
-
     return df
 
 def load_formated_data(TARGET):
@@ -44,12 +44,12 @@ def percent_err(df, target):
     Returns hours to turn off system for given appliance based on threshold.
     """
     outlier_threshold = 20 # anything higer than this is probably just a bad prediction
-    flag_threshold = 15 # anything higher than this is a potential to be
+    flag_threshold = 15 # anything higher than this should be flagged
     pe = abs((df["prediction"] - df[target]) / df["prediction"] * 100)
-    ind = pe[(pe < outlier_threshold) & (pe > flag_threshold)].index # these indexes are not correct
+    ind = pe[(pe < outlier_threshold) & (pe > flag_threshold)].index
     return ind
 
-def get_flagged_times(model_results, target):
+def get_flagged_times(model_results, target, days):
     # Load in our testing data (train only)
     data = load_formated_data(target)
     train_size = round(data.shape[0] *2/3)
@@ -57,7 +57,7 @@ def get_flagged_times(model_results, target):
     data["hour"] = data.index.hour
     data["month"] = data.index.month
     # Merge with predictions
-    df = merge_preds(model_results[target]["predictions"].tolist(), data)
+    df = merge_preds(model_results[target]["predictions"].tolist(), data, days)
     # Percent Error rule
     pe = percent_err(df, target)
     return pe
