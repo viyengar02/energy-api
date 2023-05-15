@@ -10,7 +10,7 @@ from utils.tools import get_config_path
 
 model_targets = [ # These are the good models so we will use them as a demo
     "electricity-interior_lighting",
-    "electricity-exterior_lighting",
+    "electricity-fans",
     "electricity-interior_equipment"
 ]
 
@@ -65,8 +65,7 @@ def get_data(days: int):
     # Get time period to predict
     now = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M") # Get current datetime as string
     start_date = datetime.datetime.strptime(now, '%Y-%m-%dT%H:%M').replace(minute=0) # Turn to datetime
-    end_date = start_date + timedelta(days=1) # Here we can change how far into the future we want to predict (must change API call too)
-    # Format data
+    end_date = start_date + timedelta(days=days)
     date_times = data.get("hourly").get("time")
     date_times = [datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M') for date in date_times]
     temps = data.get("hourly").get("temperature_2m")
@@ -112,8 +111,10 @@ def run_predictions_v2(days: int):
             model = load_model(get_config_path(f"{target}_model.json"))
             predictions = model.predict(model_inputs)
             results[target]["predictions"] = predictions
-            flagged_times = get_flagged_times(results, target)
+            flagged_times = get_flagged_times(results, target, days)
             results[target]["flagged_times"] = flagged_times
+
+        print(results)
         return results
     except Exception as error:
         print(f'Error occurred at run_predictions_v2: {error}')

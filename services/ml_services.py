@@ -21,12 +21,12 @@ def run_compund_model(days: int):
                 "predictions": payload['electricity-interior_lighting']["predictions"].tolist(),
                 "flagged_times": payload['electricity-interior_lighting']["flagged_times"].tolist()
             },
-            "electricity-exterior_lighting": {
-                "predictions": payload['electricity-interior_lighting']["predictions"].tolist(),
-                "flagged_times": payload['electricity-exterior_lighting']["flagged_times"].tolist()
+            "electricity-fans": {
+                "predictions": payload['electricity-fans']["predictions"].tolist(),
+                "flagged_times": payload['electricity-fans']["flagged_times"].tolist()
             },
             "electricity-interior_equipment": {
-                "predictions": payload['electricity-interior_lighting']["predictions"].tolist(),
+                "predictions": payload['electricity-interior_equipment']["predictions"].tolist(),
                 "flagged_times": payload['electricity-interior_equipment']["flagged_times"].tolist()
             }
         }
