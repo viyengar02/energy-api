@@ -114,7 +114,6 @@ def run_predictions_v2(days: int):
             flagged_times = get_flagged_times(results, target, days)
             results[target]["flagged_times"] = flagged_times
 
-        print(results)
         return results
     except Exception as error:
         print(f'Error occurred at run_predictions_v2: {error}')

@@ -3,35 +3,21 @@ from datetime import datetime
 from utils.tools import get_config_path
 
 
+def create_time_stamps(preds):
+    current_hour = datetime.now().replace(minute=0, second=0, microsecond=0)
+    date_range = pd.date_range(start=current_hour, periods=len(preds), freq='H')
+    preds_w_time = pd.DataFrame({'prediction': preds}, index=date_range)
+    return preds_w_time
 
-def generate_order(start_index=datetime.now().hour):
-    """
-    Generates a list starting from a specified index, counting up to 23, then wrapping back to 0 and counting up to
-    the specified index again.
-
-    :param start_index: The starting index for the list. Must be between 0 and 23 (inclusive).
-    :return: The generated list.
-    """
-    if not (0 <= start_index <= 23):
-        raise ValueError("start_index must be between 0 and 23 (inclusive).")
-    
-    generated_list = []
-    for i in range(start_index, 24):
-        generated_list.append(i)
-    for i in range(0, start_index):
-        generated_list.append(i)
-    
-    return generated_list
-
-def merge_preds(preds, data, days):
+def merge_preds(preds, data, days, target):
     group_by_month = data.groupby(['month', 'hour']).mean()
     month = datetime.now().month
     df = group_by_month.loc[(month,)]
-    df = df.iloc[generate_order()]
-    df = df.reset_index(drop=True)
-    df = pd.concat([df] * days, ignore_index=True)
-    df["prediction"] = preds
-    return df
+    list_hourly_means = df[target].tolist()
+    preds = create_time_stamps(preds)
+    hourly_map = dict(zip(range(24), list_hourly_means))
+    preds["avgs"] = preds.index.hour.map(hourly_map)
+    return preds
 
 def load_formated_data(TARGET):
     data = pd.read_csv(get_config_path("ML_data.csv"))[["Datetime", TARGET, "TMP_F"]]
@@ -45,7 +31,7 @@ def percent_err(df, target):
     """
     outlier_threshold = 20 # anything higer than this is probably just a bad prediction
     flag_threshold = 15 # anything higher than this should be flagged
-    pe = abs((df["prediction"] - df[target]) / df["prediction"] * 100)
+    pe = abs((df["prediction"] - df["avgs"]) / df["prediction"] * 100)
     ind = pe[(pe < outlier_threshold) & (pe > flag_threshold)].index
     return ind
 
@@ -57,8 +43,7 @@ def get_flagged_times(model_results, target, days):
     data["hour"] = data.index.hour
     data["month"] = data.index.month
     # Merge with predictions
-    df = merge_preds(model_results[target]["predictions"].tolist(), data, days)
+    df = merge_preds(model_results[target]["predictions"].tolist(), data, days, target)
     # Percent Error rule
     pe = percent_err(df, target)
     return pe
-
