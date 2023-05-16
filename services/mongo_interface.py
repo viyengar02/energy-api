@@ -17,10 +17,9 @@ def insert_energy_record(board_info: object, payload: dict, board_type = "ADE900
     payload['board_info'] = board_info
     collection_name.insert_one(payload)
 
-def insert_energy_records(board_id: str, payload: dict, board_type = "ADE9000"):
+def insert_energy_records_bulk(payload: list, board_type = "ADE9000"):
     collection_name = db_client[f'{board_type}-records']
-    # collection_name.insert_many([payload])
-    # collection_name.insert_many([payload])
+    collection_name.insert_many(payload)
 
 #=================== BOARD MONGODB SERVICES=======================
 def get_board_records(board_id: str, board_type = "ADE9000"):

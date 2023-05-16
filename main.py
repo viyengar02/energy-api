@@ -32,6 +32,11 @@ def get_energy_record(token: str = Depends(http_token_bearer)):
     user_id = security.verify_user_access_token(token)
     return energy_reading_controllers.get_records_controller(user_id)
 
+@app.post("/energy-recordss")
+def post_energy_records(data: templates.PostBoardData, token: str = Depends(http_token_bearer)):
+    user_id = security.verify_user_access_token(token)
+    return energy_reading_controllers.insert_dummy_record_controller(data)
+
 #============ Board Routes =====================
 
 @app.post("/boards/authenticate")

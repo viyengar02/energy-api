@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from services import mongo_interface
 from datetime import datetime, timezone
+from bson import ObjectId
 
 def insert_record_controller(board_id: str, data: dict):
     try:
@@ -15,6 +16,20 @@ def insert_record_controller(board_id: str, data: dict):
     except Exception as error:
         raise Exception(f'Error occurred at insert_energy_record_controller: {error}')
 
+def insert_dummy_record_controller(payload: dict):
+    try:
+        data = payload.dict()["data"]
+        for item in data:
+            item["_id"] = item.pop("id")
+
+        mongo_interface.insert_energy_records_bulk(data)
+        response = {
+            "SUCCESSS": "A+"
+        }
+        return response
+    except Exception as error:
+        raise Exception(f'Error occurred at insert_energy_record_controller: {error}')
+    
 def get_records_controller(user_id: str):
     try:
         user_info = mongo_interface.get_user(user_id)
