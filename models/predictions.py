@@ -113,6 +113,7 @@ def run_predictions_v2(days: int):
             results[target]["predictions"] = predictions
             flagged_times = get_flagged_times(results, target, days)
             results[target]["flagged_times"] = flagged_times
+            results[target]["predictions"] = results[target]["predictions"]/1000
 
         return results
     except Exception as error:
