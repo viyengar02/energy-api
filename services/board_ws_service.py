@@ -5,6 +5,8 @@ import json
 from services import mongo_interface
 from controllers import energy_reading_controllers
 from utils import templates
+from controllers import ml_controllers
+from cachetools import cached, TTLCache
 
 class BoardWebsocket:
     def __init__(self, websocket: WebSocket, board_id: str):
@@ -13,8 +15,9 @@ class BoardWebsocket:
         self.user_id = None
         self.user_config = None
         self.change_stream_task = None
-        self.optimization = False
+        self.optimization = 0
         self.optimization_th = None
+        self.model_name = "electricity-fans"
 
     async def start(self):
 
@@ -73,11 +76,7 @@ class BoardWebsocket:
                 'board_id': board_id,
                 'ade_id': data['ade_id']
             }
-            if (self.optimization and self.optimization_th < board_data["POW_ACTIVE"]):
-                await self.handle_optimization(data['ade_id'], is_low = True)
-            elif (self.optimization and self.optimization_th > board_data["POW_ACTIVE"]):
-                await self.handle_optimization(data['ade_id'], is_low = False)
-
+            await self.optimization_checker(board_data, data)
         except ValidationError as e:
             print(f'Validation Error For Energy Record {e}')
             await self.send_message({
@@ -106,29 +105,48 @@ class BoardWebsocket:
             if (self.user_id is None):#Shouldn't happen
                 self.user_id = event['fullDocument']['user_id']
 
-            if(board_config['optimize']):
-                self.optimization = True
+            self.optimization = board_config['optimize'] 
+            if(board_config['optimize'] == 1):
                 self.optimization_th = board_config["power_threshold"]
             else:
-                self.optimization = False
                 self.optimization_th = None
         except Exception as error:
             print(f"Error at handle_config_event {error}")
 
-    async def handle_optimization(self, ade_id: int, is_low: bool):
-        #get user id from database
+    async def optimization_checker(self, board_data: dict, data: dict):
         try:
+            #Check for user settings and if missing - pull from database
             if(self.user_config is None):
                 self.user_config = mongo_interface.get_user(self.user_id)['config']
+            if(self.optimization == 1):#Handle Optimization through manual threshold
+                await self.handle_optimization_th(data['ade_id'], board_data["POW_ACTIVE"], self.optimization_th)
+            elif (self.optimization == 2):
+                await self.handle_optimization_ml(data['ade_id'], board_data["POW_ACTIVE"])
+        except Exception as error:
+            print(f"Error at optimization_checker {error}")
+
+    async def handle_optimization_ml(self, ade_id: int, board_power: float):
+        try:
+            #1) Run the ML model - hardcoded to 1 day
+            predictions = self.get_predictions()
+            next_hour_val = predictions[self.model_name]['predictions'][0]
+            print(next_hour_val)
+            await self.handle_optimization_th(ade_id, board_power, next_hour_val)
+        except Exception as error:
+            print(f"Error at handle_optimization_ml {error}")
+
+    #Handles optimization based on a user preset threhsold
+    async def handle_optimization_th(self, ade_id: int, board_power: float, threshold: float):
+        try:
             for key in self.user_config:
-                if self.user_config[key] == ade_id and is_low:
+                if self.user_config[key] == ade_id and board_power > threshold:
                     await self.send_optimization_msg(key, "LOW")
                     break
-                elif self.user_config[key] == ade_id and not is_low:
+                elif self.user_config[key] == ade_id and board_power < threshold:
                     await self.send_optimization_msg(key, "HIGH")
                     break
         except Exception as error:
-            print(f"Error at handle_optimization {error}")
+            print(f"Error at handle_optimization_manual {error}")
 
         return 0
     
@@ -140,6 +158,11 @@ class BoardWebsocket:
         optimization_msg["payload"][pin] = value
         await self.send_message(optimization_msg)
 
+    # Cache with a maximum size of 1 and 2-minute TTL
+    @cached(cache=TTLCache(maxsize=1, ttl=120))
+    def get_predictions(self):
+        return ml_controllers.run_xgboost_controller_compound(1)
+    
     async def send_message(self, message):
         await self.websocket.send_text(json.dumps(message))
     

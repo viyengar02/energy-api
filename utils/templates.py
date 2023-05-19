@@ -1,6 +1,7 @@
 from typing import Optional
 from typing import List
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
+from fastapi import HTTPException
 
 class BoardData(BaseModel):
     VA_MAG: float
@@ -68,6 +69,12 @@ class LoginUser(BaseModel):
     email: str
     password: str
 
-class OptimizationThreshold(BaseModel):
-    optimize: bool
+class OptimizationThreshold(BaseModel):    
+    optimize: int
     power_threshold: float
+
+    @validator('optimize', pre=True)
+    def validate_optimize(cls, value):
+        if not isinstance(value, int) or isinstance(value, bool):
+            raise HTTPException(status_code=400, detail="Bad Request - optimize can be 0, 1 or 2")
+        return value
