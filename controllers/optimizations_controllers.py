@@ -11,6 +11,9 @@ def enable_th_optimization(user_id: str, optimization_options: object):
     try:
         config = optimization_options.dict()
         if(config["optimize"] in valid_values):
+            #Check if value is a valid percentage (between 0 and 100)
+            if(config["optimize"] == 2 and (config["value"] > 100 or  config["value"] < 0)):
+                raise HTTPException(status_code=400, detail="Bad Request - value must be between 0 and 100 for optimization 2.")
             user_info = mongo_interface.get_user(user_id)
             update_board = mongo_interface.update_board_config(user_info["board_id"], config);
             return update_board

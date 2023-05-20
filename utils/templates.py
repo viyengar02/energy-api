@@ -71,7 +71,7 @@ class LoginUser(BaseModel):
 
 class OptimizationThreshold(BaseModel):    
     optimize: int
-    power_threshold: float
+    value: float
 
     @validator('optimize', pre=True)
     def validate_optimize(cls, value):

@@ -16,7 +16,7 @@ class BoardWebsocket:
         self.user_config = None
         self.change_stream_task = None
         self.optimization = 0
-        self.optimization_th = None
+        self.value = None # Optimization Threshold Or percent difference
         self.model_name = "electricity-fans"
 
     async def start(self):
@@ -62,7 +62,7 @@ class BoardWebsocket:
         user_info = mongo_interface.get_user(board_info["user_id"])
         self.user_config = user_info['config']
         self.optimization = board_info['board_config']['optimize']
-        self.optimization_th = board_info['board_config']['power_threshold']
+        self.value = board_info['board_config']['value']
 
     async def handle_energy_record(self, board_id: str, data):
         try:
@@ -106,10 +106,10 @@ class BoardWebsocket:
                 self.user_id = event['fullDocument']['user_id']
 
             self.optimization = board_config['optimize'] 
-            if(board_config['optimize'] == 1):
-                self.optimization_th = board_config["power_threshold"]
+            if(board_config['optimize'] == 1 or board_config['optimize'] == 2):
+                self.value = board_config["value"]
             else:
-                self.optimization_th = None
+                self.value = None
         except Exception as error:
             print(f"Error at handle_config_event {error}")
 
@@ -119,7 +119,7 @@ class BoardWebsocket:
             if(self.user_config is None):
                 self.user_config = mongo_interface.get_user(self.user_id)['config']
             if(self.optimization == 1):#Handle Optimization through manual threshold
-                await self.handle_optimization_th(data['ade_id'], board_data["POW_ACTIVE"], self.optimization_th)
+                await self.handle_optimization_th(data['ade_id'], board_data["POW_ACTIVE"], self.value)
             elif (self.optimization == 2):
                 await self.handle_optimization_ml(data['ade_id'], board_data["POW_ACTIVE"])
         except Exception as error:
@@ -130,8 +130,9 @@ class BoardWebsocket:
             #1) Run the ML model - hardcoded to 1 day
             predictions = self.get_predictions()
             next_hour_val = predictions[self.model_name]['predictions'][0]
-            print(next_hour_val)
-            await self.handle_optimization_th(ade_id, board_power, next_hour_val)
+            adjusted_th = next_hour_val*(1+self.value/100)#Adjust the theshold based on user config
+            print(next_hour_val, adjusted_th)
+            await self.handle_optimization_th(ade_id, board_power, adjusted_th)
         except Exception as error:
             print(f"Error at handle_optimization_ml {error}")
 
