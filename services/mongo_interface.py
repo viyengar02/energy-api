@@ -30,6 +30,15 @@ def get_board_records(board_id: str, board_type = "ADE9000"):
         response_list.append(item)
     return response_list
 
+#for admins to use
+def get_all_board_records(board_type="ADE9000"):
+    collection_name = db_client[f'{board_type}-records']
+    item_details = collection_name.find()  # No filter to get all records
+    response_list = []
+    for item in item_details:
+        response_list.append(item)
+    return response_list
+
 def create_board(board_id: str, board_type: str, user_id: str):
     collection_name = db_client["boards"]
     payload = {
@@ -97,6 +106,7 @@ def create_user(payload):
     collection_name = db_client['users']
 
     filter = {'email': payload['email']}
+    
     update = {'$setOnInsert': payload}
 
     result = collection_name.update_one(filter, update, upsert=True)
@@ -117,6 +127,7 @@ def get_user(user_id: str):
     collection_name = db_client['users']
     user_info = collection_name.find_one({"_id": ObjectId(user_id)})
     user_info["_id"] = str(user_info["_id"])
+    user_info["auth_lvl"] = str(user_info['auth_lvl'])
     return user_info
 
 def update_user_board(user_id: str, board_id: str):

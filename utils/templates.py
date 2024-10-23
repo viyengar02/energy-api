@@ -64,10 +64,14 @@ class UserInformation(BaseModel):
     username: str
     password: str
     email: str
+    auth_lvl: str
 
 class LoginUser(BaseModel):
     email: str
     password: str
+
+class BoardAuthLvl(BaseModel):
+    auth_lvl: str
 
 class OptimizationThreshold(BaseModel):    
     optimize: int
