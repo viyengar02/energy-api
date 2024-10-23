@@ -77,9 +77,18 @@ This command will ensure that the API instance will keep running after closing t
 | 0.7     | Implemented a Websocket for the user which listens and send energy records | Fixed Async Task Cleanup |
 | 0.8     | Implemented compund models | N/A |
 | 0.9     | Implemented ML optimization | N/A |
-## Maintainers
+
+
+## Original Creators
 
 * Aleksandar Aleksandrov - ava54@drexel.edu
 * Tyler Ostinato
 * Aleksandar Dunjic
 * Brett Chow
+
+## Maintaners
+* Varun Iyengar - viyengar02@gmail.com
+* Harrison Muller
+* Nate Judd
+* Kaylie Ludwick
+* Cassius Garcia
