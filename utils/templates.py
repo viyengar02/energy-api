@@ -65,6 +65,11 @@ class UserInformation(BaseModel):
     password: str
     email: str
     auth_lvl: str
+    in_comm: List[str]
+
+class MemberToBeAdded(BaseModel):
+    higher: str
+    lower: str
 
 class LoginUser(BaseModel):
     email: str

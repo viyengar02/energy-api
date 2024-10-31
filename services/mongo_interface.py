@@ -136,6 +136,31 @@ def update_user_board(user_id: str, board_id: str):
     update = {'$set': {"board_id": board_id}}
     user_info = collection_name.update_one(filter, update)
     return user_info
+def add_member(payload):
+    collection_name = db_client['users']
+    higher_username = payload['higher']
+    lower_username = payload['lower']
+
+    # Retrieve the higher user
+    higher_user = collection_name.find_one({"username": higher_username})
+    if not higher_user:
+        raise HTTPException(status_code=404, detail="Higher user not found.")
+
+    # Retrieve the lower user
+    lower_user = collection_name.find_one({"username": lower_username})
+    if not lower_user:
+        raise HTTPException(status_code=404, detail="Lower user not found.")
+
+    # Update the in_comm list of the higher user
+    if lower_username not in higher_user['in_comm']:
+        collection_name.update_one(
+            {"username": higher_username},
+            {"$addToSet": {"in_comm": lower_username}}  # Use $addToSet to avoid duplicates
+        )
+        return {"message": f"{lower_username} has been added under {higher_username}."}
+    else:
+        raise HTTPException(status_code=409, detail="User already exists under this hierarchy.")
+
 
 def update_user_config(user_id: str, config):
     collection_name = db_client['users']
