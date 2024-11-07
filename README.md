@@ -23,6 +23,7 @@ This document provides a quick overview of the system, how to set it up locally 
 ```bash
 python3 -m venv /path/to/new/virtual/environment
 source /path/to/new/virtual/environment/bin/activate
+# source /Users/varun/Desktop/classes_fall\ 24-25/senior\ design/emps-env
 ```
 * Navigate to the root directory of the emps-api repository and install dependencies
 

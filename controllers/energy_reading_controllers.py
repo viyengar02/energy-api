@@ -59,16 +59,32 @@ def get_records_controller(user_id: str):
 
         # Check if the user's board ID exists
         if 'board_id' not in user_info:
-            raise HTTPException(status_code=400, detail="Missing board id from user information.")
-        
+            raise HTTPException(status_code=400, detail="Missing board ID from user information.")
+
         # Check the user's auth level
         auth_lvl = user_info.get('auth_lvl', 'user')  # Default to 'user' if not set
-        
-        # If the user is an admin, fetch all records
+
+        # Determine records to retrieve based on auth level
         if auth_lvl == "admin":
+            # Admin users can view all records
             records_list = mongo_interface.get_all_board_records()
+        elif auth_lvl == "head":
+            # Head users can view their own records and records of all users in their in_comm list
+            records_list = []
+            
+            # Retrieve records for the head user's board ID
+            records_list.extend(mongo_interface.get_board_records(user_info['board_id']))
+
+            # Fetch records for users listed in the head user's in_comm
+            in_comm_usernames = user_info.get('in_comm', [])
+            for username in in_comm_usernames:
+                # Find each user's board ID
+                comm_user_info = mongo_interface.get_user(username)
+                if comm_user_info and 'board_id' in comm_user_info:
+                    # Add records for each user in in_comm
+                    records_list.extend(mongo_interface.get_board_records(comm_user_info['board_id']))
         else:
-            # Non-admin users can only see records associated with their board
+            # Non-admin and non-head users can only see records associated with their board
             records_list = mongo_interface.get_board_records(user_info['board_id'])
 
         response = {
