@@ -86,3 +86,14 @@ def member_to_be_added(payload):
     except Exception as error:
         print(f'Error occurred at register_board: {error}')
         raise HTTPException(status_code=500, detail="Internal Server Error")
+    
+def member_to_be_removed(payload):
+    try:
+        data = payload.dict()
+        response = mongo_interface.remove_member(data)
+        return response
+    except HTTPException as http_error:
+        raise http_error
+    except Exception as error:
+        print(f'Error occurred at register_board: {error}')
+        raise HTTPException(status_code=500, detail="Internal Server Error")

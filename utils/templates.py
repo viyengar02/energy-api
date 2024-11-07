@@ -66,6 +66,7 @@ class UserInformation(BaseModel):
     email: str
     auth_lvl: str
     in_comm: List[str]
+    head : str
 
 class MemberToBeAdded(BaseModel):
     higher: str

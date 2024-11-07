@@ -73,9 +73,13 @@ def configure_user(data: templates.BoardPinConfiguration, token: str = Depends(h
 def login_user(data: templates.LoginUser):
     return users_controllers.login_user(data)
 
-@app.put("/users/hierarchy")
+@app.put("/users/hierarchy/add")
 def add_member_under(data: templates.MemberToBeAdded):
     return users_controllers.member_to_be_added(data)
+
+@app.put("/users/hierarchy/remove")
+def add_member_under(data: templates.MemberToBeAdded):
+    return users_controllers.member_to_be_removed(data)
 
 #============ ML Models Routes =====================
 @app.get("/models/xgboost")
