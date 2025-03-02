@@ -24,6 +24,8 @@ This document provides a quick overview of the system, how to set it up locally 
 python3 -m venv /path/to/new/virtual/environment
 source /path/to/new/virtual/environment/bin/activate
 # source /Users/varun/Desktop/classes_fall\ 24-25/senior\ design/emps-env
+
+# yo do this shit on 8001 not 8000 cause you fucked something up mysteriously
 ```
 * Navigate to the root directory of the emps-api repository and install dependencies
 
@@ -34,6 +36,8 @@ pip3 install -r requirements.txt
 * Start the development server locally on port 8000
 
 ```bash
+pip install motor
+pip install cachetools
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
@@ -46,7 +50,11 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 * Check if a current API process is currently running and kill it:
 
 ```bash
-ps xw
+#To kill process
+ps aux | grep uvicorn
+kill $(pgrep -P $uvicornPID)
+
+
 15726 ?        S      0:00 sshd: ec2-user@pts/0
 15727 pts/0    Ss     0:00 -bash
 15805 pts/0    S      0:01 /usr/bin/python3 /usr/local/bin/uvicorn main:app --reload --host 0.0.0.0 --port 8000

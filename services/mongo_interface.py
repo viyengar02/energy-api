@@ -122,13 +122,26 @@ def check_user(payload):
     user_info = collection_name.find_one(payload)
     user_info["_id"] = str(user_info["_id"])
     return user_info
-
+ 
 def get_user(user_id: str):
-    collection_name = db_client['users']
-    user_info = collection_name.find_one({"_id": ObjectId(user_id)})
-    user_info["_id"] = str(user_info["_id"])
-    user_info["auth_lvl"] = str(user_info['auth_lvl'])
-    return user_info
+
+    # Example MongoDB query
+        user_data = db_client['users'].find_one({"username": user_id})
+        
+        if not user_data:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        # Remove MongoDB ID before returning
+        user_data.pop('_id', None)
+        
+        return user_data
+
+    # collection_name = db_client['users']
+    # user_info = collection_name.find_one({"_id": ObjectId(user_id)})
+    # user_info["_id"] = str(user_info["_id"])
+    # user_info["auth_lvl"] = str(user_info['auth_lvl'])
+    # return user_info
+
 
 def update_user_board(user_id: str, board_id: str):
     collection_name = db_client['users']

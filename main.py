@@ -1,4 +1,7 @@
-from fastapi import FastAPI, Request, status, Depends, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request, status, Depends, WebSocket, WebSocketDisconnect, Body
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from jose import JWTError, jwt
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -19,6 +22,28 @@ http_token_bearer = HTTPBearer()
 api_config = get_config_file("api.config.json")
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For development only
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods including OPTIONS
+    allow_headers=["*"],  # Allows all headers including Authorization
+)
+
+security = HTTPBearer()
+
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, "alexiscool", algorithms=["HS256"])
+        return payload
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+        )
+    
 
 #uvicorn main:app --reload --host 0.0.0.0 --port 8000
 @app.get("/")
@@ -54,10 +79,14 @@ def register_new_board(data: templates.BoardLoginInformation, token: str = Depen
 
 #============ Users Routes =====================
 
+# @app.get("/users")
+# async def get_user_info(token: str = Depends(http_token_bearer)):
+#     user_id = security.verify_user_access_token(token)
+#     return users_controllers.get_user_info(user_id)
+
 @app.get("/users")
-async def get_user_info(token: str = Depends(http_token_bearer)):
-    user_id = security.verify_user_access_token(token)
-    return users_controllers.get_user_info(user_id)
+async def get_user_info(username: str):
+    return users_controllers.get_user_info(username)
 
 @app.post("/users")
 def register_new_user(data: templates.UserInformation):
@@ -80,6 +109,10 @@ def add_member_under(data: templates.MemberToBeAdded):
 @app.put("/users/hierarchy/remove")
 def add_member_under(data: templates.MemberToBeAdded):
     return users_controllers.member_to_be_removed(data)
+
+@app.get("/test")
+def testGetCall():
+    return "succeeded get call"
 
 #============ ML Models Routes =====================
 @app.get("/models/xgboost")

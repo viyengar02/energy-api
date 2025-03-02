@@ -88,3 +88,6 @@ class OptimizationThreshold(BaseModel):
         if not isinstance(value, int) or isinstance(value, bool):
             raise HTTPException(status_code=400, detail="Bad Request - optimize can be 0, 1 or 2")
         return value
+    
+class testGet(BaseModel):
+    test: str
