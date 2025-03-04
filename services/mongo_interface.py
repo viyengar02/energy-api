@@ -30,6 +30,18 @@ def get_board_records(board_id: str, board_type = "ADE9000"):
         response_list.append(item)
     return response_list
 
+def get_demo_record(item_name: str):
+    collection_name = db_client['data']
+    item_info = collection_name.find_one({"name": item_name})
+    if not item_info:
+        return None
+        
+    # Convert MongoDB ObjectId to string
+    item_info['_id'] = str(item_info['_id'])
+    
+    # Keep data as strings - we'll parse in the controller
+    return item_info
+
 #for admins to use
 def get_all_board_records(board_type="ADE9000"):
     collection_name = db_client[f'{board_type}-records']
@@ -124,23 +136,10 @@ def check_user(payload):
     return user_info
  
 def get_user(user_id: str):
-
-    # Example MongoDB query
-        user_data = db_client['users'].find_one({"username": user_id})
-        
-        if not user_data:
-            raise HTTPException(status_code=404, detail="User not found")
-            
-        # Remove MongoDB ID before returning
-        user_data.pop('_id', None)
-        
-        return user_data
-
-    # collection_name = db_client['users']
-    # user_info = collection_name.find_one({"_id": ObjectId(user_id)})
-    # user_info["_id"] = str(user_info["_id"])
-    # user_info["auth_lvl"] = str(user_info['auth_lvl'])
-    # return user_info
+    collection_name = db_client['users']
+    user_info = collection_name.find_one({"_id": ObjectId(user_id)})
+    user_info["_id"] = str(user_info["_id"])
+    return user_info
 
 
 def update_user_board(user_id: str, board_id: str):

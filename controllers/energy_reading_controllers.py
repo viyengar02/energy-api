@@ -1,7 +1,20 @@
+import matplotlib.pyplot as plt
+import base64
+from io import BytesIO
 from fastapi import HTTPException
 from services import mongo_interface
 from datetime import datetime, timezone
+import pydantic
 from bson import ObjectId
+pydantic.json.ENCODERS_BY_TYPE[ObjectId]=str
+
+def demo_record_fetch(item_name: str):
+    try:
+        response = mongo_interface.get_demo_record(item_name)
+        return response
+    except Exception as error:
+        raise Exception(f'Error occurred at insert_energy_record_controller: {error}')
+    
 
 def insert_record_controller(board_id: str, data: dict):
     try:

@@ -69,13 +69,13 @@ def check_user_auth(user_credentials):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 def get_user_info(user_id: str):
-    # try:
+    try:
         response = mongo_interface.get_user(user_id)
         return response
-    # except Exception as error:
-    #     print(f'Error occurred at register_board: {error}')
-    #     raise HTTPException(status_code=500, detail="Internal Server Error")
-    # return 1
+    except Exception as error:
+        print(f'Error occurred at register_board: {error}')
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    return 1
 def member_to_be_added(payload):
     try:
         data = payload.dict()

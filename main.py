@@ -27,8 +27,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # For development only
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods including OPTIONS
-    allow_headers=["*"],  # Allows all headers including Authorization
+    allow_methods=["*"], 
+    allow_headers=["*"],  
 )
 
 security = HTTPBearer()
@@ -61,6 +61,10 @@ def get_energy_record(token: str = Depends(http_token_bearer)):
 def post_energy_records(data: templates.PostBoardData, token: str = Depends(http_token_bearer)):
     user_id = security.verify_user_access_token(token)
     return energy_reading_controllers.insert_dummy_record_controller(data)
+
+@app.get("/energy_records/test")
+def test(name: str):
+    return energy_reading_controllers.demo_record_fetch(name)
 
 #============ Board Routes =====================
 
