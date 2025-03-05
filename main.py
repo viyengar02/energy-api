@@ -68,6 +68,10 @@ def test(name: str):
 
 #============ Board Routes =====================
 
+@app.get("/demo")
+def lora_ping():
+    return "Lora ping received"
+
 @app.post("/boards/authenticate")
 def login_board(data: templates.BoardLoginInformation):
     return board_controller.autenticate_board(data)
