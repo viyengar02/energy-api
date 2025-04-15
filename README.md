@@ -1,3 +1,9 @@
+# demo info!!
+# talk about JWT, maybe show db (atlas) specifically the users section. Could even run through some postman 
+# stuff if need be, ie creating a new user and then checking db to see that the user has been created
+# also for demo, laptop monitor and fan
+
+
 # Energy Management and Prediction System API #
 
 This project is a FAST API Python based backend REST API for the Energy Management and Prediction System for Senior Design Group 06. The key responsibilities for this API act as an integration component of the different components of the system.
@@ -25,7 +31,8 @@ python3 -m venv /path/to/new/virtual/environment
 source /path/to/new/virtual/environment/bin/activate
 # source /Users/varun/Desktop/classes_fall\ 24-25/senior\ design/emps-env
 
-# yo do this shit on 8001 not 8000 cause you fucked something up mysteriously
+# yo do this shit on 8001 not 8000 cause you fucked something up mysteriously 
+
 ```
 * Navigate to the root directory of the emps-api repository and install dependencies
 

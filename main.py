@@ -17,15 +17,19 @@ from utils.tools import get_config_file
 from typing import Optional
 from services.board_ws_service import BoardWebsocket
 from services.user_ws_service import UserWebsocket
+import socketio
 
 http_token_bearer = HTTPBearer()
 api_config = get_config_file("api.config.json")
 
 app = FastAPI()
+sio = socketio.AsyncServer(cors_allowed_origins='*', async_mode='asgi')
+socket_app = socketio.ASGIApp(sio, other_asgi_app=app)
+
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For development only
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"], 
     allow_headers=["*"],  
@@ -45,10 +49,20 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
         )
     
 
-#uvicorn main:app --reload --host 0.0.0.0 --port 8000
+#uvicorn main:socket_app --reload --host 0.0.0.0 --port 8000
 @app.get("/")
 def root():
     return "Hello EMP System!"
+#connecting to websocket
+@sio.event
+async def connect(sid, environ):
+    print(f"Client connected: {sid}")
+#websocket from lora to here to frontend
+@app.post("/lora")
+async def button_pressed(request: Request):
+    print("Button pressed from secondary device!")
+    await sio.emit("button_event", {"message": "Button was pressed!"})
+    return JSONResponse(content={"status": "ok"})
 
 #============ Energy Routes =====================
 
@@ -184,4 +198,3 @@ async def websocket_endpoint(websocket: WebSocket):
     user_ws = UserWebsocket(websocket, user_id)
     # Call the start method of the BoardWebSocket class
     await user_ws.start()
-    

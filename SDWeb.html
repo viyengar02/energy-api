@@ -118,6 +118,35 @@
       </div>
     </div>
 
+    <!-- this is the lora light-->
+    <div data-layer="card1" class="Card1" style="height: 266px; width: 100px; padding: 20px; left: 800px; top: 500px; position: absolute; background: #62f765; border-radius: 14px; display: inline-flex; flex-direction: column; align-items: center; gap: 15px">
+      <!-- Status Indicator -->
+      <div id="status-indicator" style="position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; border-radius: 50%; background-color: #ff4444; box-shadow: 0 0 8px rgba(255, 68, 68, 0.3);"></div>
+  
+      <div data-layer="contents" class="Contents" style="display: flex; flex-direction: column; gap: 20px; align-items: center">
+          <!-- You can add content here -->
+      </div>
+  
+      <!-- Socket.IO Script -->
+      <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+      <script>
+          const socket = io("http://127.0.0.1:8001"); // Replace with your backend IP if not local
+  
+          socket.on("connect", () => {
+              console.log("Connected to backend via WebSocket");
+          });
+  
+          socket.on("button_event", (data) => {
+              console.log("Received event:", data);
+  
+              // Change indicator color to green
+              const indicator = document.getElementById("status-indicator");
+              indicator.style.backgroundColor = "#44ff44";
+              indicator.style.boxShadow = "0 0 8px rgba(68, 255, 68, 0.3)";
+          });
+      </script>
+  </div>
+  
     <!-- this is the twilio api call, will send text-->
     <div data-layer="card1" class="Card1" style="height: 266px; padding: 20px; left: 800px; top: 100px; position: absolute; background: #62f765; border-radius: 14px; display: inline-flex; flex-direction: column; align-items: center; gap: 15px">
       <div data-layer="contents" class="Contents" style="display: flex; flex-direction: column; gap: 20px; align-items: center">
