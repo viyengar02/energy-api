@@ -53,6 +53,8 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
     
 
 #uvicorn main:socket_app --reload --host 0.0.0.0 --port 8000
+#uvicorn main:socket_app --reload --host 172.20.10.10 --port 8000
+#make sure to add board creds to the database for nate to connect to
 @app.get("/")
 def root():
     return "Hello EMP System!"
