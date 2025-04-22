@@ -1,8 +1,3 @@
-# demo info!!
-# talk about JWT, maybe show db (atlas) specifically the users section. Could even run through some postman 
-# stuff if need be, ie creating a new user and then checking db to see that the user has been created
-# also for demo, laptop monitor and fan
-
 
 # Energy Management and Prediction System API #
 
