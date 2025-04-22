@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, status, Depends, WebSocket, WebSocketDisconnect, Body
+from fastapi import FastAPI, HTTPException, Request, status, Depends, WebSocket, APIRouter, Body
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,7 +17,10 @@ from utils.tools import get_config_file
 from typing import Optional
 from services.board_ws_service import BoardWebsocket
 from services.user_ws_service import UserWebsocket
+from typing import Dict
 import socketio
+
+board_connections = {}
 
 http_token_bearer = HTTPBearer()
 api_config = get_config_file("api.config.json")
@@ -25,7 +28,7 @@ api_config = get_config_file("api.config.json")
 app = FastAPI()
 sio = socketio.AsyncServer(cors_allowed_origins='*', async_mode='asgi')
 socket_app = socketio.ASGIApp(sio, other_asgi_app=app)
-
+router = APIRouter()
 
 app.add_middleware(
     CORSMiddleware,
@@ -98,6 +101,23 @@ async def get_board_info(token: str = Depends(http_token_bearer)):
 def register_new_board(data: templates.BoardLoginInformation, token: str = Depends(http_token_bearer)):
     user_id = security.verify_user_access_token(token)
     return board_controller.register_board(data, user_id)
+
+@app.get("/actuate")
+async def actuate_outlet():
+    message = {
+        "action": "pin_select",
+        "payload": {
+            "PIN_1": "HIGH"  # Example payload
+        }
+    }
+    print(board_connections)
+    for board_id, connection in board_connections.items():
+        try:
+            await connection.websocket.send_json(message)
+        except Exception as e:
+            print(f"Error sending to board {board_id}: {e}")
+    
+    return {"status": "Command sent to all boards"}
 
 #============ Users Routes =====================
 
@@ -176,6 +196,9 @@ async def websocket_endpoint(websocket: WebSocket):
         return
 
     board_ws = BoardWebsocket(websocket, board_id)
+    print("this is where the board_ws prints")
+    print(board_ws)
+    board_connections[board_id] = board_ws
     
     # Call the start method of the BoardWebSocket class
     await board_ws.start()
@@ -196,5 +219,7 @@ async def websocket_endpoint(websocket: WebSocket):
         return
 
     user_ws = UserWebsocket(websocket, user_id)
+    print("this is where the user_ws prints")
+    print(user_ws)
     # Call the start method of the BoardWebSocket class
     await user_ws.start()

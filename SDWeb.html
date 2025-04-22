@@ -43,14 +43,14 @@
                 <div data-layer="Dashboard" class="Dashboard" style="color: #5F6165; font-size: 14px; font-family: DM Sans; font-weight: 500; word-wrap: break-word">Dashboard</div>
               </div>
             </div>
-            <div data-layer="assets" class="Assets" style="height: 34px; padding-left: 8px; padding-right: 8px; padding-top: 7px; padding-bottom: 7px; border-radius: 6px; flex-direction: column; justify-content: center; align-items: flex-start; gap: 10px; display: flex">
-              <div data-layer="assets" class="Assets" style="justify-content: flex-start; align-items: flex-start; gap: 8px; display: inline-flex">
+            <div data-layer="Community" class="Community" style="height: 34px; padding-left: 8px; padding-right: 8px; padding-top: 7px; padding-bottom: 7px; border-radius: 6px; flex-direction: column; justify-content: center; align-items: flex-start; gap: 10px; display: flex">
+              <div data-layer="Community" class="Community" style="justify-content: flex-start; align-items: flex-start; gap: 8px; display: inline-flex">
                 <div data-svg-wrapper data-layer="icons/Doughnut/Line" class="IconsDoughnutLine" style="position: relative">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd" clip-rule="evenodd" d="M9.99984 18.3337C14.6022 18.3337 18.3332 14.6027 18.3332 10.0003C18.3332 5.39795 14.6022 1.66699 9.99984 1.66699C5.39746 1.66699 1.6665 5.39795 1.6665 10.0003C1.6665 14.6027 5.39746 18.3337 9.99984 18.3337ZM15.2663 14.0884C16.1439 12.9595 16.6665 11.541 16.6665 10.0003C16.6665 6.60064 14.1218 3.79532 10.8332 3.38524V6.77201C12.2709 7.14204 13.3332 8.44713 13.3332 10.0003C13.3332 10.6185 13.1649 11.1974 12.8716 11.6937L15.2663 14.0884ZM14.0878 15.2669L11.6931 12.8722C11.1968 13.1654 10.618 13.3337 9.99984 13.3337C9.3817 13.3337 8.80285 13.1654 8.30661 12.8722L5.91187 15.2669C7.04076 16.1444 8.45928 16.667 9.99984 16.667C11.5404 16.667 12.9589 16.1444 14.0878 15.2669ZM6.6665 10.0003C6.6665 10.6185 6.8348 11.1974 7.12807 11.6937L4.73334 14.0884C3.85576 12.9595 3.33317 11.541 3.33317 10.0003C3.33317 6.60064 5.87791 3.79532 9.1665 3.38524V6.77201C7.72881 7.14204 6.6665 8.44713 6.6665 10.0003ZM9.99984 11.667C10.9203 11.667 11.6665 10.9208 11.6665 10.0003C11.6665 9.07985 10.9203 8.33366 9.99984 8.33366C9.07936 8.33366 8.33317 9.07985 8.33317 10.0003C8.33317 10.9208 9.07936 11.667 9.99984 11.667Z" fill="#72767C"/>
                 </svg>
                 </div>
-                <div data-layer="Assets" class="Assets" style="color: #5F6165; font-size: 14px; font-family: DM Sans; font-weight: 500; word-wrap: break-word">Assets</div>
+                <div data-layer="Community" class="Community" style="color: #5F6165; font-size: 14px; font-family: DM Sans; font-weight: 500; word-wrap: break-word">Community</div>
               </div>
             </div>
           </div>
@@ -118,16 +118,71 @@
       </div>
     </div>
 
-    <!-- this is the lora light-->
+  <!-- this is the button to actuate outlets-->
+    <div data-layer="card1" class="Card1" style="height: 266px; width: 200px; padding: 20px; left: 800px; top: 500px; position: absolute; background: #62f765; border-radius: 14px; display: inline-flex; flex-direction: column; align-items: center; gap: 15px">
+      
+        <div id="status-indicator" style="position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; border-radius: 50%; background-color: #ff4444; box-shadow: 0 0 8px rgba(255, 68, 68, 0.3);"></div>
+    
+        <div data-layer="contents" class="Contents" style="display: flex; flex-direction: column; gap: 20px; align-items: center">
+            
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 15px; width: 100%">
+            <input type="tel" id="outletInput" 
+                   style="padding: 12px; border-radius: 8px; border: none; 
+                          font-family: DM Sans; font-size: 14px" 
+                   placeholder="enter device">
+            
+            <button onclick="actuateOutlet()" 
+                    style="padding: 12px 24px; background: #F6CC0D; border: none; 
+                           border-radius: 8px; font-weight: 700; cursor: pointer">
+                actuateOutlet
+            </button>
+        </div>
+
+        <!-- Response Container -->
+        <div id="responseContainer" 
+             style="margin-top: 10px; padding: 12px; background: rgba(0,0,0,0.1); 
+                    border-radius: 8px; white-space: pre-wrap; width: 100%; 
+                    text-align: center; font-size: 14px">
+            enter outlet and hit send
+        </div>
+    </div>
+    <script>
+        ;
+        async function actuateOutlet() {
+            const container = document.getElementById('responseContainer');
+            const outletNum = document.getElementById('outletInput');
+            try {
+                const token = generateJWT();
+          const response = await fetch(`http://localhost:8001/actuate`, {
+              headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Accept': 'application/json'
+              }
+          });
+
+          console.log('Response status:', response.status); 
+  
+                  const data = await response.json();
+                  
+                  
+              }  
+              catch (error) {
+                //do some error handling 
+            }
+        }
+    </script>
+    
+    </div>
+    <!--  this is the lora light
     <div data-layer="card1" class="Card1" style="height: 266px; width: 100px; padding: 20px; left: 800px; top: 500px; position: absolute; background: #62f765; border-radius: 14px; display: inline-flex; flex-direction: column; align-items: center; gap: 15px">
-      <!-- Status Indicator -->
+      
       <div id="status-indicator" style="position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; border-radius: 50%; background-color: #ff4444; box-shadow: 0 0 8px rgba(255, 68, 68, 0.3);"></div>
   
       <div data-layer="contents" class="Contents" style="display: flex; flex-direction: column; gap: 20px; align-items: center">
-          <!-- You can add content here -->
+          
       </div>
   
-      <!-- Socket.IO Script -->
       <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
       <script>
           const socket = io("http://127.0.0.1:8001"); // Replace with your backend IP if not local
@@ -145,7 +200,7 @@
               indicator.style.boxShadow = "0 0 8px rgba(68, 255, 68, 0.3)";
           });
       </script>
-  </div>
+  </div> -->
   
     <!-- this is the twilio api call, will send text-->
     <div data-layer="card1" class="Card1" style="height: 266px; padding: 20px; left: 800px; top: 100px; position: absolute; background: #62f765; border-radius: 14px; display: inline-flex; flex-direction: column; align-items: center; gap: 15px">
