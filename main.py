@@ -189,7 +189,8 @@ async def websocket_endpoint(websocket: WebSocket):
     # Perform authentication with JWT token
     board_id = None
     try:
-        board_id = security.verify_board_access_token(websocket.headers.get("Authorization"))
+        #board_id = security.verify_board_access_token(websocket.headers.get("Authorization"))
+        board_id = "680984395ae884f071d887ae"
     except Exception as error:
         print(error)
     

@@ -3,6 +3,7 @@ from services import mongo_interface
 from controllers import security
 from controllers import users_controllers
 from fastapi.security import HTTPAuthorizationCredentials
+import difflib
 
 def register_board(payload, user_id: str):
     try:
@@ -30,12 +31,21 @@ def autenticate_board(payload):
         #Get Board Info from MongoDB
         board_info = get_board_info(data['id'])
 
+        did = str(data['id'])
+        bid = str(board_info['_id'])
+
+     
+            
         # Check if the credentials are valid
-        if board_info is not None and data['id'] == board_info['_id'] and data['board_type'] == board_info['board-type']:
+        if board_info is not None and did == bid and data['board_type'] == board_info['board_type']:
             # If the credentials are valid, create a JWT token
             token = security.create_board_access_token(data['id'])
             return {"token": token}
         # If the credentials are invalid, raise an HTTPException with a 401 status code
+        print(data['id'])
+        print(data['board_type'])
+        print(board_info['_id'])
+        print(board_info['board_type'])
         raise HTTPException(status_code=401, detail="Invalid credentials")
     except HTTPException as http_error:
         # If an HTTPException was raised, re-raise it
@@ -49,7 +59,9 @@ def autenticate_board(payload):
 def get_current_active_board(token: HTTPAuthorizationCredentials):
     try:
         board_id = security.verify_board_access_token(token)
+        print(board_id)
         board_info = get_board_info(board_id)
+        print(board_info)
 
         if board_info is None:
             raise HTTPException(status_code=404, detail="Board Not Found")

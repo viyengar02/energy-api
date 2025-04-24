@@ -65,9 +65,11 @@ def create_board(board_id: str, board_type: str, user_id: str):
     collection_name.insert_one(payload)
     return payload
 
-def get_board(board_id: int):
+def get_board(board_id: str):
     collection_name = db_client['boards']
-    board_info = collection_name.find_one({"_id":board_id})
+    board_info = collection_name.find_one({"id":board_id})
+    print("this is board info")
+    print(board_info)
     return board_info
 
 def delete_board_entry(board_id: int):

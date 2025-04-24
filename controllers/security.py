@@ -18,9 +18,11 @@ def create_board_access_token(board_id: str):
     return encoded_jwt
 
 def verify_board_access_token(token: str):
+    print(token)
     try:
         payload = jwt.decode(token, api_config['secret'], algorithms=[api_config['algorithm']])
         id = payload.get("id")
+        print(id)
         #Check user_id
         if id is None:
             raise HTTPException(status_code=401, detail="Invalid token")
