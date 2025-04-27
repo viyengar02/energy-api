@@ -6,6 +6,7 @@ from services import mongo_interface
 from datetime import datetime, timezone
 import pydantic
 from bson import ObjectId
+from utils import templates
 pydantic.json.ENCODERS_BY_TYPE[ObjectId]=str
 
 def demo_record_fetch(item_name: str):
@@ -15,6 +16,20 @@ def demo_record_fetch(item_name: str):
     except Exception as error:
         raise Exception(f'Error occurred at insert_energy_record_controller: {error}')
     
+
+def insert_record_controller_demo(board_id: str, data: templates.PostBoardData):
+    try:
+        current_date = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S')
+        #data["_id"] = f'{current_date}'
+        data_dict = data.dict()
+        mongo_interface.insert_energy_record_demo(board_id, data_dict)
+        response = {
+            "action": "energy_record_response",
+            "payload": data_dict
+        }
+        return response
+    except Exception as error:
+        raise Exception(f'Error occurred at insert_energy_record_controller: {error}')
 
 def insert_record_controller(board_id: str, data: dict):
     try:

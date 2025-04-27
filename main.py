@@ -85,6 +85,10 @@ def post_energy_records(data: templates.PostBoardData, token: str = Depends(http
 def test(name: str):
     return energy_reading_controllers.demo_record_fetch(name)
 
+@app.post("/energy_data")
+def post_energy_records(data: templates.PostBoardData):
+    return energy_reading_controllers.insert_record_controller_demo("ADE9000",data)
+
 #============ Board Routes =====================
 
 @app.get("/demo")
