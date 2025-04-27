@@ -38,6 +38,7 @@ def autenticate_board(payload):
             
         # Check if the credentials are valid
         if board_info is not None and did == bid and data['board_type'] == board_info['board_type']:
+        #if board_info is not None and data['id'] == board_info['_id'] and data['board_type'] == board_info['board-type']:
             # If the credentials are valid, create a JWT token
             token = security.create_board_access_token(data['id'])
             return {"token": token}
