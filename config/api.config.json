@@ -1,7 +1,8 @@
 {
     "port": 8000,
     "secret": "alexiscool",
-    "host": "172.20.10.10",
+    "host": "172.20.10.15",
     "algorithm": "HS256",
     "token_exp": 24
 }
+
