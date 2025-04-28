@@ -24,7 +24,8 @@ class BoardWebsocket:
         #Get the necessary configurations
         try:
             if(self.user_id is None):
-                self.get_configurations()
+                #self.get_configurations()
+                self.get_configurations_demo()
             await self.websocket.accept()
             self.change_stream_task = asyncio.create_task(self.conf_change_sub())
         except Exception as error:
@@ -63,6 +64,14 @@ class BoardWebsocket:
         self.user_config = user_info['config']
         self.optimization = board_info['board_config']['optimize']
         self.value = board_info['board_config']['value']
+    def get_configurations_demo(self):
+        #board_info = mongo_interface.get_board(self.board_id)
+        #user_info = mongo_interface.get_user(board_info["user_id"])
+        user_info = mongo_interface.get_user('67c0ffde380078a0f680d9e9')
+        board_info = mongo_interface.get_board('680984395ae884f071d887ae')
+       #self.user_config = user_info['config']
+        #self.optimization = board_info['board_config']['optimize']
+        #self.value = board_info['board_config']['value']
 
     async def handle_energy_record(self, board_id: str, data):
         try:
