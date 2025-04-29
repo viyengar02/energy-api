@@ -51,6 +51,12 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
             detail="Invalid authentication credentials",
         )
     
+def parseEnergyData(lst: templates.PostBoardData):
+    for i in lst:
+        i = 0
+        # you have the template, step through every value based piece of the record and sum them. Avg at the end.
+    return lst
+
 
 #uvicorn main:socket_app --reload --host 0.0.0.0 --port 8000
 #uvicorn main:socket_app --reload --host 172.20.10.10 --port 8000
@@ -86,9 +92,13 @@ def post_energy_records(data: templates.PostBoardData, token: str = Depends(http
 def test(name: str):
     return energy_reading_controllers.demo_record_fetch(name)
 
+@app.get("/energy_records/test_bulk")
+def testBulk():
+    return energy_reading_controllers.demo_record_fetch_bulk()
+
 @app.post("/energy_data")
 def post_energy_records(data: templates.PostBoardData):
-    return energy_reading_controllers.insert_record_controller_demo("ADE9000",data)
+    return parseEnergyData(energy_reading_controllers.insert_record_controller_demo("ADE9000",data))
 
 #============ Board Routes =====================
 
@@ -166,7 +176,7 @@ def testGetCall():
 #============ ML Models Routes =====================
 @app.get("/models/xgboost")
 def run_xgboost(token: str = Depends(http_token_bearer), days: int = 1):
-    user_id = security.verify_user_access_token(token)
+    user_id = verify_token(token)
     return ml_controllers.run_xgboost_controller_v1(days)
 
 @app.get("/models/compound")

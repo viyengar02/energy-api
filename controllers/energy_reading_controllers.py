@@ -15,6 +15,13 @@ def demo_record_fetch(item_name: str):
         return response
     except Exception as error:
         raise Exception(f'Error occurred at insert_energy_record_controller: {error}')
+
+def demo_record_fetch_bulk():
+    try:
+        response = mongo_interface.get_all_board_records()
+        return response
+    except Exception as error:
+        raise Exception(f'Error occurred at insert_energy_record_controller: {error}')
     
 
 def insert_record_controller_demo(board_id: str, data: templates.PostBoardData):
