@@ -51,7 +51,7 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
             detail="Invalid authentication credentials",
         )
     
-def parseEnergyData(lst: templates.PostBoardData):
+def parseEnergyData(lst):
     for i in lst:
         i = 0
         # you have the template, step through every value based piece of the record and sum them. Avg at the end.
@@ -122,10 +122,9 @@ def register_new_board(data: templates.BoardLoginInformation, token: str = Depen
 @app.get("/actuate")
 async def actuate_outlet():
     message = {
-        "action": "pin_select",
-        "payload": {
-            "PIN_1": "HIGH"  # Example payload
-        }
+         
+            "PIN_1": "HIGH" 
+        
     }
     print(board_connections)
     for board_id, connection in board_connections.items():
