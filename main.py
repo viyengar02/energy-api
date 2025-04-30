@@ -1,3 +1,7 @@
+#uvicorn main:socket_app --reload --host 0.0.0.0 --port 8000
+#harrison use the above for local
+#uvicorn main:socket_app --reload --host 172.20.10.10 --port 8000
+#use the above with YOUR OWN IP for hosting 
 from fastapi import FastAPI, HTTPException, Request, status, Depends, WebSocket, APIRouter, Body
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
@@ -12,6 +16,7 @@ from controllers import board_controller
 from controllers import security
 from controllers import users_controllers
 from controllers import ml_controllers
+from collections import defaultdict
 from fastapi.security import HTTPBearer
 from utils.tools import get_config_file
 from typing import Optional
@@ -51,15 +56,33 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
             detail="Invalid authentication credentials",
         )
     
-def parseEnergyData(lst):
-    for i in lst:
-        i = 0
-        # you have the template, step through every value based piece of the record and sum them. Avg at the end.
-    return lst
+def parseEnergyData(data):
+    sums = defaultdict(float)
+    counts = defaultdict(int)
+    
+    for entry in data:
+        for key, value in entry.items():
+            if key in ['_id', 'id']:
+                continue
+            if key == 'board_info':
+                for subkey, subvalue in value.items():
+                    if subkey == 'ade_id':
+                        continue
+                    if isinstance(subvalue, (int, float)):
+                        sums[subkey] += subvalue
+                        counts[subkey] += 1
+            else:
+                if isinstance(value, (int, float)):
+                    sums[key] += value
+                    counts[key] += 1
+    averages = {
+        key: round(total / counts[key], 2)
+        for key, total in sums.items()
+    }
+    return averages
 
 
-#uvicorn main:socket_app --reload --host 0.0.0.0 --port 8000
-#uvicorn main:socket_app --reload --host 172.20.10.10 --port 8000
+
 #make sure to add board creds to the database for nate to connect to
 #check ifconfig for broadcast ip
 @app.get("/")
@@ -94,11 +117,11 @@ def test(name: str):
 
 @app.get("/energy_records/test_bulk")
 def testBulk():
-    return energy_reading_controllers.demo_record_fetch_bulk()
+    return parseEnergyData(energy_reading_controllers.demo_record_fetch_bulk())
 
 @app.post("/energy_data")
 def post_energy_records(data: templates.PostBoardData):
-    return parseEnergyData(energy_reading_controllers.insert_record_controller_demo("ADE9000",data))
+    return energy_reading_controllers.insert_record_controller_demo("ADE9000",data)
 
 #============ Board Routes =====================
 

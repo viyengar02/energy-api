@@ -496,7 +496,7 @@ container.textContent = "✅ Data loaded successfully";
 
       const signature = CryptoJS.HmacSHA256(
           `${encodedHeader}.${encodedPayload}`,
-          "alexiscool" // Changed to correct secret
+          "alexiscool" 
       ).toString(CryptoJS.enc.Base64url)
        .replace(/=+$/, '');
 
