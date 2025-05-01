@@ -16,7 +16,7 @@ from controllers import board_controller
 from controllers import security
 from controllers import users_controllers
 from controllers import ml_controllers
-from collections import defaultdict
+from services import ml_services
 from fastapi.security import HTTPBearer
 from utils.tools import get_config_file
 from typing import Optional
@@ -56,33 +56,15 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
             detail="Invalid authentication credentials",
         )
     
-def parseEnergyData(data):
-    sums = defaultdict(float)
-    counts = defaultdict(int)
-    
-    for entry in data:
-        for key, value in entry.items():
-            if key in ['_id', 'id']:
-                continue
-            if key == 'board_info':
-                for subkey, subvalue in value.items():
-                    if subkey == 'ade_id':
-                        continue
-                    if isinstance(subvalue, (int, float)):
-                        sums[subkey] += subvalue
-                        counts[subkey] += 1
-            else:
-                if isinstance(value, (int, float)):
-                    sums[key] += value
-                    counts[key] += 1
-    averages = {
-        key: round(total / counts[key], 2)
-        for key, total in sums.items()
-    }
-    return averages
+def parseEnergyData(lst: templates.PostBoardData):
+    for i in lst:
+        i = 0
+        # you have the template, step through every value based piece of the record and sum them. Avg at the end.
+    return lst
 
 
-
+#uvicorn main:socket_app --reload --host 0.0.0.0 --port 8000
+#uvicorn main:socket_app --reload --host 172.20.10.10 --port 8000
 #make sure to add board creds to the database for nate to connect to
 #check ifconfig for broadcast ip
 @app.get("/")
@@ -117,11 +99,11 @@ def test(name: str):
 
 @app.get("/energy_records/test_bulk")
 def testBulk():
-    return parseEnergyData(energy_reading_controllers.demo_record_fetch_bulk())
+    return energy_reading_controllers.demo_record_fetch_bulk()
 
 @app.post("/energy_data")
 def post_energy_records(data: templates.PostBoardData):
-    return energy_reading_controllers.insert_record_controller_demo("ADE9000",data)
+    return parseEnergyData(energy_reading_controllers.insert_record_controller_demo("ADE9000",data))
 
 #============ Board Routes =====================
 
@@ -145,9 +127,10 @@ def register_new_board(data: templates.BoardLoginInformation, token: str = Depen
 @app.get("/actuate")
 async def actuate_outlet():
     message = {
-         
-            "PIN_1": "HIGH" 
-        
+        "action": "pin_select",
+        "payload": {
+            "PIN_1": "HIGH"  # Example payload
+        }
     }
     print(board_connections)
     for board_id, connection in board_connections.items():
@@ -203,8 +186,14 @@ def run_xgboost(token: str = Depends(http_token_bearer), days: int = 1):
 
 @app.get("/models/compound")
 def run_xgboost(token: str = Depends(http_token_bearer), days: int = 1):
-    user_id = security.verify_user_access_token(token)
+    user_id = verify_token(token)
     return ml_controllers.run_xgboost_controller_compound(days)
+
+@app.get("/models/refresh")
+def refresh_flagged_times(phonenum: str, token: str = Depends(http_token_bearer), days: int = 1,):
+    user_id = verify_token(token)
+    predictions = ml_controllers.run_xgboost_controller_compound(days)
+    return ml_services.send_pred_twilio(phonenum, predictions)
 
 #============ Optimization Routes ===================
 @app.post("/optimization/threshold")
