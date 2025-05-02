@@ -1,20 +1,29 @@
+<!DOCTYPE html>
+<html>
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-      canvas {
-          max-width: 800px;
-          margin: 0 auto;
-      }
-      #graphContainer {
-          margin-top: 2rem;
-          padding: 1rem;
-          background: white;
-          border-radius: 8px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      }
-  </style>
-  </head>
+        canvas {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        #graphContainer {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .chart-container {
+            margin: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
   
   <div data-layer="Dashboard" class="Dashboard" style="width: 1339px; height: 1042px; position: relative; background: #F5F5F5">
       <div data-layer="side bar" class="SideBar" style="width: 248px; height: 1024px; padding-left: 24px; padding-right: 24px; padding-top: 30px; padding-bottom: 30px; left: 0px; top: 2px; position: absolute; background: white; justify-content: flex-start; align-items: flex-start; gap: 10px; display: inline-flex">
@@ -122,43 +131,108 @@
             </div>
           </div>
         </div>
-      </div>
-  
-    
-      
-      </div>
-      
-  
-  
- <!-- Energy Data Card -->
-<div data-layer="card1" class="Card1" style="height: auto; padding: 20px; left: 300px; top: 100px; position: absolute; background: #A162F7; border-radius: 14px; display: inline-flex; flex-direction: column; gap: 15px; width: 400px">
-  <div style="display: flex; flex-direction: column; align-items: center; gap: 15px">
-      <!-- Title Section -->
-      <div style="display: flex; flex-direction: column; align-items: center; gap: 10px">
-          <div style="width: 38px; height: 38px; background: #A66FF0; border-radius: 9999px; display: grid; place-items: center">
-              <svg width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3.45417 11.6784L11.251 0.882735C11.7668 0.168648 12.8934 0.638777 12.7486 1.50764L11.6666 7.99965H15.8701C16.55 7.99965 16.9437 8.76979 16.5457 9.32089L8.74883 20.1166C8.2331 20.8307 7.10646 20.3605 7.25127 19.4917L8.33327 12.9997H4.12974C3.44993 12.9997 3.05615 12.2295 3.45417 11.6784Z" fill="white"/>
-              </svg>
-          </div>
-          <div style="color: white; font-size: 24px; font-family: DM Sans; font-weight: 700">Energy Data</div>
-      </div>
-
-
-      <!-- Graph Container -->
-      <div id="graphContainer" style="display: none; width: 100%; gap: 20px; flex-direction: column">
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px">
-            <canvas id="vrmsPlot"></canvas>
-            <canvas id="irmsPlot"></canvas>
-            <canvas id="prealPlot"></canvas>
-          </div>
-          <div id="responseContainer2" style="padding: 12px; background: rgba(0,0,0,0.1); border-radius: 8px; text-align: center"></div>
-      </div>
-  </div>
-</div>
-          </body>
-          <div data-layer="Energy" class="Energy" style="color: white; font-size: 24px; font-family: DM Sans; font-weight: 700; word-wrap: break-word">energyData</div>
-          </div>
+      </div>   
+       <!-- Graphs Section -->
+       <div style="position: absolute; left: 300px; top: 100px; width: 1000px;">
+        <div class="chart-container">
+            <canvas id="voltageChart"></canvas>
         </div>
-      </div>
-  
+        <div class="chart-container">
+            <canvas id="currentChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="powerChart"></canvas>
+        </div>
     </div>
+
+    <div data-layer="Energy" class="Energy" style="color: white; font-size: 24px; font-family: DM Sans; font-weight: 700; word-wrap: break-word">energyData</div>
+</div>
+
+<script>
+    let voltageChart, currentChart, powerChart;
+    let timestamps = [];
+
+    function initializeChart(canvasId, labels, datasets, yAxisTitle) {
+        return new Chart(document.getElementById(canvasId), {
+            type: 'line',
+            data: {
+                labels: timestamps,
+                datasets: datasets.map(d => ({
+                    label: d.label,
+                    data: [],
+                    borderColor: d.color,
+                    tension: 0.1,
+                    fill: false
+                }))
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { title: { display: true, text: 'Time' } },
+                    y: { title: { display: true, text: yAxisTitle } }
+                }
+            }
+        });
+    }
+
+    function updateChart(chart, values) {
+        values.forEach((value, index) => {
+            if (chart.data.datasets[index].data.length >= 15) {
+                chart.data.datasets[index].data.shift();
+            }
+            chart.data.datasets[index].data.push(value);
+        });
+        chart.update();
+    }
+
+    async function fetchData() {
+        try {
+            const response = await fetch('http://0.0.0.0:8000/energy_records/test_bulk');
+            const data = await response.json();
+            
+            // Update timestamps
+            const now = new Date().toLocaleTimeString();
+            if (timestamps.length >= 15) timestamps.shift();
+            timestamps.push(now);
+
+            // Update charts
+            updateChart(voltageChart, [data.VA_MAG, data.VB_MAG, data.VC_MAG]);
+            updateChart(currentChart, [data.IA_MAG, data.IB_MAG, data.IC_MAG]);
+            updateChart(powerChart, [
+                data.POW_APPARENT/1000, 
+                data.POW_ACTIVE/1000, 
+                data.POW_REACTIVE/1000
+            ]);
+
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+
+    // Initialize charts
+    document.addEventListener('DOMContentLoaded', () => {
+        voltageChart = initializeChart('voltageChart', timestamps, [
+            { label: 'VA', color: '#FF6384' },
+            { label: 'VB', color: '#36A2EB' },
+            { label: 'VC', color: '#FFCE56' }
+        ], 'Voltage (V)');
+
+        currentChart = initializeChart('currentChart', timestamps, [
+            { label: 'IA', color: '#4BC0C0' },
+            { label: 'IB', color: '#9966FF' },
+            { label: 'IC', color: '#FF9F40' }
+        ], 'Current (A)');
+
+        powerChart = initializeChart('powerChart', timestamps, [
+            { label: 'Apparent Power', color: '#FF6384' },
+            { label: 'Active Power', color: '#36A2EB' },
+            { label: 'Reactive Power', color: '#FFCE56' }
+        ], 'Power (kW)');
+
+        // Initial fetch and set interval
+        fetchData();
+        setInterval(fetchData, 60000);
+    });
+</script>
+</body>
+</html> 
