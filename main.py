@@ -24,9 +24,11 @@ from services.board_ws_service import BoardWebsocket
 from services.user_ws_service import UserWebsocket
 from typing import Dict
 import socketio
+import random
+from services import ml_services
 
 board_connections = {}
-
+swapVar = 0
 http_token_bearer = HTTPBearer()
 api_config = get_config_file("api.config.json")
 
@@ -144,11 +146,11 @@ def register_new_board(data: templates.BoardLoginInformation, token: str = Depen
 
 @app.get("/actuate")
 async def actuate_outlet():
-    message = {
-         
-            "PIN_1": "HIGH" 
-        
-    }
+    global swapVar
+    if swapVar == 0:
+        message = {"PIN_1": "HIGH"}
+    else:
+        message = {"PIN_1": "LOW"}
     print(board_connections)
     for board_id, connection in board_connections.items():
         try:
@@ -156,7 +158,15 @@ async def actuate_outlet():
         except Exception as e:
             print(f"Error sending to board {board_id}: {e}")
     
-    return {"status": "Command sent to all boards"}
+    return message
+
+@app.get("/swap")
+async def swap():
+    global swapVar
+    if swapVar == 1:
+         swapVar = 0
+    else:
+        swapVar = 1
 
 #============ Users Routes =====================
 
@@ -203,8 +213,14 @@ def run_xgboost(token: str = Depends(http_token_bearer), days: int = 1):
 
 @app.get("/models/compound")
 def run_xgboost(token: str = Depends(http_token_bearer), days: int = 1):
-    user_id = security.verify_user_access_token(token)
+    user_id = verify_token(token)
     return ml_controllers.run_xgboost_controller_compound(days)
+
+@app.get("/models/refresh")
+def refresh_flagged_times(phonenum: str, token: str = Depends(http_token_bearer), days: int = 1,):
+    user_id = verify_token(token)
+    predictions = ml_controllers.run_xgboost_controller_compound(days)
+    return ml_services.send_pred_twilio(phonenum, predictions)
 
 #============ Optimization Routes ===================
 @app.post("/optimization/threshold")

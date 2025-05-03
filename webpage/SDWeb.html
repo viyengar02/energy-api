@@ -161,7 +161,7 @@
             const outletNum = document.getElementById('outletInput');
             try {
                 const token = generateJWT();
-          const response = await fetch(`http://localhost:8001/actuate`, {
+          const response = await fetch(`http://localhost:8000/swap`, {
               headers: {
                   'Authorization': `Bearer ${token}`,
                   'Accept': 'application/json'
@@ -347,7 +347,7 @@
           graphContainer.style.display = 'none';
 
           const token = generateJWT();
-          const response = await fetch(`http://localhost:8001/energy_records/test?name=${encodeURIComponent(deviceName)}`, {
+          const response = await fetch(`http://localhost:8000/energy_records/test?name=${encodeURIComponent(deviceName)}`, {
               headers: {
                   'Authorization': `Bearer ${token}`,
                   'Accept': 'application/json'
