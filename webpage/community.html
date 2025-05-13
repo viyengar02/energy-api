@@ -187,7 +187,7 @@
 
     async function fetchData() {
         try {
-            const response = await fetch('http://0.0.0.0:8000/energy_records/test_bulk');
+            const response = await fetch('http://172.20.10.10:8000/energy_records/test_bulk');
             const data = await response.json();
             
             // Update timestamps
