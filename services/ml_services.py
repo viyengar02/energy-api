@@ -53,35 +53,38 @@ def send_pred_twilio(phonenum, predictions):
     return send_sms(phonenum, filtered_response)
 
 def send_sms(phone_number, times):
+    load_dotenv()
     url = f"https://api.twilio.com/2010-04-01/Accounts/{os.getenv('TWILIO_ACCOUNT_SID')}/Messages.json"
 
     auth = HTTPBasicAuth(os.getenv('TWILIO_ACCOUNT_SID'), os.getenv('TWILIO_AUTH_TOKEN'))
 
+    print(os.getenv('TWILIO_ACCOUNT_SID'), os.getenv('TWILIO_AUTH_TOKEN'))
+    
     body = "🚨 Power Consumption Alerts 🚨\n\n"
 
     for key, value in times.items():
         body += f"* {key.replace('-', ' ').title()}:\n"
 
         for i, time in enumerate(value['flagged_times'], 1):
-            body += f"   {i}. {time}\n"
+            body += f"   {time}\n"
 
         body+="\n"
-
+    
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded'
     }
-
+    
     data = {
         'To': phone_number,
-        'From': TWILIO_PHONE_NUMBER,
+        'From': os.getenv('TWILIO_PHONE_NUMBER'),
         'Body': body
     }
-
+    
     response = requests.post(
         url,
         auth=auth,
         headers=headers,
         data=data
     )
-
+    
     return response.json()
