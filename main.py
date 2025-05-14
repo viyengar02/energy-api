@@ -219,6 +219,11 @@ def run_xgboost(token: str = Depends(http_token_bearer), days: int = 1):
 @app.get("/models/refresh")
 def refresh_flagged_times(phonenum: str, token: str = Depends(http_token_bearer), days: int = 1,):
     user_id = verify_token(token)
+    return ml_controllers.run_xgboost_controller_compound(days)
+
+@app.get("/models/ml_twilio")
+def refresh_flagged_times(phonenum: str, token: str = Depends(http_token_bearer), days: int = 1,):
+    user_id = verify_token(token)
     predictions = ml_controllers.run_xgboost_controller_compound(days)
     return ml_services.send_pred_twilio(phonenum, predictions)
 
