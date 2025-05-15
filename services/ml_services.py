@@ -4,6 +4,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 from urllib.parse import urlencode
 import os
+from dotenv import load_dotenv
 
 def run_xgboost(days: int):
     try:
